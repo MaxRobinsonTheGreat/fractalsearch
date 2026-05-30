@@ -38,7 +38,7 @@ from harness.interface import FitContext, Solution
 # --- Fixed evaluation protocol constants --------------------------------------
 TRAIN_BUDGET_S = 300        # target training time handed to fit() (5 minutes)
 HARD_KILL_S = 600           # absolute backstop; run is killed past this (10 minutes)
-EVAL_RESX, EVAL_RESY = 1024, 1024   # 1M-point dense evaluation grid
+EVAL_RESX, EVAL_RESY = 2048, 2048   # 1M-point dense evaluation grid
 PREVIEW_RES = 512           # preview render HEIGHT (width set by aspect ratio)
 SEED = 1234
 
