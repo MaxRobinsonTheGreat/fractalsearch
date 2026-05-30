@@ -1,6 +1,7 @@
 # Experiment outputs (kept local, not version controlled)
 runs/
 runs.jsonl
+run.log
 
 # Cached ground-truth eval fixtures
 .cache/
