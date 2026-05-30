@@ -92,6 +92,18 @@ def make_grid(resx: int, resy: int, device="cpu",
     return torch.stack([gx.reshape(-1), gy.reshape(-1)], dim=1)
 
 
+# True aspect ratio of the view window (width / height ~ 1.59). Render grids should
+# use this so pixels are square in coordinate space and the fractal isn't distorted.
+ASPECT = (XMAX - XMIN) / (YMAX - YMIN)
+
+
+def aspect_grid(height: int, device="cpu"):
+    """Aspect-correct render grid. Width is chosen so coordinate-space pixels are
+    square. Returns (coords[(h*w), 2], width, height); reshape preds to (height, width)."""
+    width = max(1, round(height * ASPECT))
+    return make_grid(width, height, device=device), width, height
+
+
 def sample_uniform(n: int, generator: torch.Generator = None, device="cpu") -> torch.Tensor:
     """Return (n, 2) uniform random points over the view window."""
     u = torch.rand(n, 2, generator=generator, device=device)

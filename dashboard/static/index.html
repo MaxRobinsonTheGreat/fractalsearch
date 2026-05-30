@@ -52,15 +52,21 @@
 
 <div class="wrap">
   <div class="panel">
-    <h2>Best-MSE over time</h2>
-    <canvas id="chart" width="800" height="200"></canvas>
-    <div class="muted" id="chart-note"></div>
+    <h2>Leaderboard</h2>
+    <table>
+      <thead><tr>
+        <th>run</th><th>name</th><th class="num">MSE</th><th class="num">MAE</th>
+        <th class="num">PSNR</th><th class="num">boundary</th><th class="num">train s</th>
+        <th>status</th>
+      </tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
   </div>
 
   <div class="panel">
-    <h2>Ground truth (target)</h2>
-    <img class="render gt" id="gt" src="/api/groundtruth" alt="ground truth"/>
-    <div class="muted">The function every solution is trying to learn.</div>
+    <h2>Best-MSE over time</h2>
+    <canvas id="chart" width="800" height="200"></canvas>
+    <div class="muted" id="chart-note"></div>
   </div>
 
   <div class="panel full">
@@ -68,18 +74,6 @@
     <img class="render" id="preview" alt="select a run"/>
     <div class="imglabels"><span>ground truth</span><span>prediction</span><span>abs error</span></div>
     <div class="muted" id="sel-desc"></div>
-  </div>
-
-  <div class="panel full">
-    <h2>Leaderboard</h2>
-    <table>
-      <thead><tr>
-        <th>run</th><th>name</th><th class="num">MSE</th><th class="num">MAE</th>
-        <th class="num">PSNR</th><th class="num">boundary</th><th class="num">train s</th>
-        <th>status</th><th>description</th>
-      </tr></thead>
-      <tbody id="rows"></tbody>
-    </table>
   </div>
 </div>
 
@@ -114,8 +108,7 @@ async function refresh(){
       <td class="num">${fmt(r.mse,6)}</td><td class="num">${fmt(r.mae,4)}</td>
       <td class="num">${fmt(r.psnr,1)}</td><td class="num">${fmt(r.boundary_mse,6)}</td>
       <td class="num">${fmt(r.train_seconds,0)}</td>
-      <td><span class="pill ${r.status}">${r.status}</span></td>
-      <td class="muted">${(r.description||"").slice(0,80)}</td></tr>`;
+      <td><span class="pill ${r.status}">${r.status}</span></td></tr>`;
   }).join("");
   document.getElementById("rows").innerHTML = rows;
 

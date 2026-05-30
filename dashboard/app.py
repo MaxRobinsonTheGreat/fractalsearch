@@ -10,8 +10,8 @@ nothing here writes to the research log, so it's safe to keep open during a run.
 
 from __future__ import annotations
 
-import io
 import json
+import math
 import os
 
 from fastapi import FastAPI, HTTPException
@@ -26,6 +26,13 @@ STATIC = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
 app = FastAPI(title="fractalsearch")
 
 
+def _finite(rec: dict) -> dict:
+    """Replace non-finite floats (inf/nan) with None so the response is valid JSON.
+    Starlette serializes with allow_nan=False, so a stray inf/nan would 500 otherwise."""
+    return {k: (None if isinstance(v, float) and not math.isfinite(v) else v)
+            for k, v in rec.items()}
+
+
 def read_runs():
     if not os.path.exists(RUNS_LOG):
         return []
@@ -35,7 +42,7 @@ def read_runs():
             line = line.strip()
             if line:
                 try:
-                    runs.append(json.loads(line))
+                    runs.append(_finite(json.loads(line)))
                 except json.JSONDecodeError:
                     pass
     return runs
@@ -73,18 +80,17 @@ def api_preview(run_id: str):
 
 
 @app.get("/api/groundtruth")
-def api_groundtruth(res: int = 512):
-    """Reference render of the target fractal (cached)."""
+def api_groundtruth(height: int = 512):
+    """Reference render of the target fractal, aspect-correct and cached."""
     os.makedirs(CACHE_DIR, exist_ok=True)
-    cache = os.path.join(CACHE_DIR, f"groundtruth_{res}.png")
+    from harness import groundtruth as gt
+    coords, W, H = gt.aspect_grid(height, device="cpu")
+    cache = os.path.join(CACHE_DIR, f"groundtruth_{W}x{H}.png")
     if not os.path.exists(cache):
-        import numpy as np
-        import torch
         from PIL import Image
-        from harness import groundtruth as gt
-        coords = gt.make_grid(res, res, device="cpu")
-        img = gt.mandelbrot(coords).reshape(res, res).numpy()
-        Image.fromarray((np.clip(img, 0, 1) * 255).astype("uint8")).save(cache)
+        from harness import colormap as cm
+        img = gt.mandelbrot(coords).reshape(H, W).numpy()
+        Image.fromarray(cm.apply(img, cm.VALUE_CMAP)).save(cache)
     return FileResponse(cache, media_type="image/png")
 
 

@@ -22,6 +22,7 @@ from __future__ import annotations
 import argparse
 import importlib.util
 import json
+import math
 import os
 import signal
 import subprocess
@@ -38,7 +39,7 @@ from harness.interface import FitContext, Solution
 TRAIN_BUDGET_S = 300        # target training time handed to fit() (5 minutes)
 HARD_KILL_S = 600           # absolute backstop; run is killed past this (10 minutes)
 EVAL_RESX, EVAL_RESY = 1000, 1000   # 1M-point dense evaluation grid
-PREVIEW_RES = 512           # preview render resolution (square-ish)
+PREVIEW_RES = 512           # preview render HEIGHT (width set by aspect ratio)
 SEED = 1234
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -100,7 +101,9 @@ def score(preds: torch.Tensor, targets: torch.Tensor) -> dict:
     err = preds - targets
     mse = torch.mean(err * err).item()
     mae = torch.mean(err.abs()).item()
-    psnr = float("inf") if mse == 0 else 10.0 * torch.log10(torch.tensor(1.0 / mse)).item()
+    # Cap PSNR to a finite value (a perfect fit gives mse=0 -> inf, which is not valid
+    # JSON and anything above ~60 dB is effectively perfect anyway).
+    psnr = 100.0 if mse <= 1e-12 else min(100.0, 10.0 * math.log10(1.0 / mse))
     # boundary-weighted error: emphasize the hard, high-detail region (target near,
     # but not at, the set). Reported only; the PRIMARY metric is mse.
     w = ((targets > 0.05) & (targets < 0.999)).float()
@@ -122,17 +125,17 @@ def save_preview(sol: Solution, run_dir: str, device):
     try:
         from PIL import Image
         import numpy as np
-        res = PREVIEW_RES
-        coords = gt.make_grid(res, res, device=device)
-        pred = predict_batched(sol, coords).reshape(res, res).cpu().numpy()
-        truth = gt.mandelbrot(coords).reshape(res, res).cpu().numpy()
+        from harness import colormap as cm
+        coords, W, H = gt.aspect_grid(PREVIEW_RES, device=device)  # PREVIEW_RES = height
+        pred = predict_batched(sol, coords).reshape(H, W).cpu().numpy()
+        truth = gt.mandelbrot(coords).reshape(H, W).cpu().numpy()
         err = np.abs(pred - truth)
         err = err / max(err.max(), 1e-8)
 
-        def gray(a):
-            return (np.clip(a, 0, 1) * 255).astype("uint8")
-
-        strip = np.concatenate([gray(truth), gray(pred), gray(err)], axis=1)
+        # [ ground truth | prediction | abs error ], heatmap-colored
+        strip = np.concatenate([cm.apply(truth, cm.VALUE_CMAP),
+                                cm.apply(pred, cm.VALUE_CMAP),
+                                cm.apply(err, cm.ERROR_CMAP)], axis=1)
         Image.fromarray(strip).save(os.path.join(run_dir, "preview.png"))
     except Exception as e:
         print(f"(preview render skipped: {e})", flush=True)
