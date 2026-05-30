@@ -10,12 +10,13 @@ nothing here writes to the research log, so it's safe to keep open during a run.
 
 from __future__ import annotations
 
+import asyncio
 import json
 import math
 import os
 
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse, HTMLResponse, Response
+from fastapi.responses import FileResponse, HTMLResponse, Response, StreamingResponse
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 RUNS_LOG = os.path.join(ROOT, "runs.jsonl")
@@ -54,8 +55,7 @@ def index():
         return f.read()
 
 
-@app.get("/api/runs")
-def api_runs():
+def runs_payload():
     runs = read_runs()
     ok = [r for r in runs if r.get("status") == "ok" and r.get("mse") is not None]
     best = min(ok, key=lambda r: r["mse"]) if ok else None
@@ -65,9 +65,47 @@ def api_runs():
         if r.get("status") == "ok" and r.get("mse") is not None:
             cur = r["mse"] if cur is None else min(cur, r["mse"])
         frontier.append(cur)
+    # latest experiment = last record appended to the log
+    latest = runs[-1]["run_id"] if runs else None
     return {"runs": runs, "frontier": frontier,
             "best_run_id": best["run_id"] if best else None,
+            "latest_run_id": latest,
             "count": len(runs), "ok_count": len(ok)}
+
+
+@app.get("/api/runs")
+def api_runs():
+    return runs_payload()
+
+
+def _log_mtime() -> float:
+    try:
+        return os.path.getmtime(RUNS_LOG)
+    except OSError:
+        return 0.0
+
+
+@app.get("/api/stream")
+async def api_stream():
+    """Server-sent events: push the full payload whenever runs.jsonl changes.
+
+    The evaluator appends a record per run, which bumps the file mtime; we poll
+    that cheaply server-side and only serialize when something actually changed,
+    so the browser updates the instant an experiment lands — no manual refresh."""
+    async def gen():
+        last_mtime = None
+        while True:
+            mtime = _log_mtime()
+            if mtime != last_mtime:
+                last_mtime = mtime
+                payload = json.dumps(runs_payload())
+                yield f"data: {payload}\n\n"
+            else:
+                yield ": keepalive\n\n"  # keep the connection from idling out
+            await asyncio.sleep(1.0)
+    return StreamingResponse(gen(), media_type="text/event-stream",
+                             headers={"Cache-Control": "no-cache",
+                                      "X-Accel-Buffering": "no"})
 
 
 @app.get("/api/preview/{run_id}")

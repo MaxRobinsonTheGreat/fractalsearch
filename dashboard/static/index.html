@@ -39,6 +39,10 @@
   canvas { width:100%; height:200px; display:block; }
   .muted { color:var(--mut); font-size:12px; }
   .gt { max-width:260px; }
+  .follow { margin-left:8px; font-size:11px; padding:2px 8px; border-radius:10px;
+            border:1px solid var(--line); background:transparent; color:var(--mut);
+            cursor:pointer; vertical-align:middle; }
+  .follow.on { color:var(--good); border-color:var(--good); }
 </style>
 </head>
 <body>
@@ -52,7 +56,12 @@
 
 <div class="wrap">
   <div class="panel">
-    <h2>Leaderboard</h2>
+    <h2>Leaderboard
+      <span style="float:right; font-weight:400;">
+        <button id="sort-score" class="follow on" onclick="setSort('score')">lowest score</button>
+        <button id="sort-latest" class="follow" onclick="setSort('latest')">latest</button>
+      </span>
+    </h2>
     <table>
       <thead><tr>
         <th>run</th><th>name</th><th class="num">MSE</th><th class="num">MAE</th>
@@ -70,7 +79,8 @@
   </div>
 
   <div class="panel full">
-    <h2>Selected solution <span id="sel-name" class="muted"></span></h2>
+    <h2>Selected solution <span id="sel-name" class="muted"></span>
+        <button id="follow-btn" class="follow on" onclick="toggleFollow()">▶ following latest</button></h2>
     <img class="render" id="preview" alt="select a run"/>
     <div class="imglabels"><span>ground truth</span><span>prediction</span><span>abs error</span></div>
     <div class="muted" id="sel-desc"></div>
@@ -78,15 +88,34 @@
 </div>
 
 <script>
-let selected = null, runs = [];
+let selected = null, runs = [], follow = true, lastFrontier = [], sortMode = "score";
 
 function fmt(x, d=6){ return (x==null) ? "–" : Number(x).toFixed(d); }
 
-async function refresh(){
-  let data;
-  try { data = await (await fetch("/api/runs")).json(); }
-  catch(e){ return; }
+function setSort(mode){
+  sortMode = mode;
+  document.getElementById("sort-score").classList.toggle("on", mode==="score");
+  document.getElementById("sort-latest").classList.toggle("on", mode==="latest");
+  renderRows();
+}
+
+function toggleFollow(){
+  follow = !follow;
+  if (follow){ const latest = runs.length ? runs[runs.length-1].run_id : null;
+               if (latest){ selected = latest; renderSelected(); markRows(); drawChart(lastFrontier); } }
+  updateFollowBtn();
+}
+
+function updateFollowBtn(){
+  const b = document.getElementById("follow-btn");
+  b.classList.toggle("on", follow);
+  b.textContent = follow ? "▶ following latest" : "⏸ pinned — click to follow";
+}
+
+// Apply a fresh payload (from SSE or the initial fetch / polling fallback).
+function update(data){
   runs = data.runs;
+  lastFrontier = data.frontier;
   document.getElementById("s-count").textContent = data.count;
   document.getElementById("s-ok").textContent = data.ok_count;
   document.getElementById("s-time").textContent = new Date().toLocaleTimeString();
@@ -94,15 +123,29 @@ async function refresh(){
   const ok = runs.filter(r => r.status==="ok" && r.mse!=null);
   const best = ok.length ? ok.reduce((a,b)=>a.mse<b.mse?a:b) : null;
   document.getElementById("s-best").textContent = best ? fmt(best.mse,6) : "–";
-  if (selected===null && best) selected = best.run_id;
 
-  // leaderboard sorted by mse (scored first), then unscored
-  const sorted = [...runs].sort((a,b)=>{
-    const am=(a.mse==null)?Infinity:a.mse, bm=(b.mse==null)?Infinity:b.mse;
-    return am-bm;
-  });
+  // Auto-follow the most recent experiment unless the user has pinned a run.
+  if (follow && data.latest_run_id) selected = data.latest_run_id;
+  else if (selected===null && best) selected = best.run_id;
+
+  bestId = best && best.run_id;
+  renderRows();
+  drawChart(lastFrontier);
+  renderSelected();
+}
+
+let bestId = null;
+
+function renderRows(){
+  // "score": scored runs ascending by MSE (unscored last); "latest": newest-first by log order.
+  const sorted = (sortMode==="latest")
+    ? [...runs].reverse()
+    : [...runs].sort((a,b)=>{
+        const am=(a.mse==null)?Infinity:a.mse, bm=(b.mse==null)?Infinity:b.mse;
+        return am-bm;
+      });
   const rows = sorted.map(r => {
-    const cls = [r.run_id===(best&&best.run_id)?"best":"", r.run_id===selected?"sel":""].join(" ");
+    const cls = [r.run_id===bestId?"best":"", r.run_id===selected?"sel":""].join(" ");
     return `<tr class="${cls}" onclick="select('${r.run_id}')">
       <td>${r.run_id}</td><td>${r.name||""}</td>
       <td class="num">${fmt(r.mse,6)}</td><td class="num">${fmt(r.mae,4)}</td>
@@ -111,13 +154,18 @@ async function refresh(){
       <td><span class="pill ${r.status}">${r.status}</span></td></tr>`;
   }).join("");
   document.getElementById("rows").innerHTML = rows;
-
-  drawChart(data.frontier);
-  renderSelected();
 }
 
-function select(id){ selected = id; renderSelected();
-  document.querySelectorAll("#rows tr").forEach(tr=>tr.classList.remove("sel")); }
+// Clicking a run pins it (stops following the latest experiment).
+function select(id){ selected = id; follow = false; updateFollowBtn();
+  renderSelected(); markRows(); drawChart(lastFrontier); }
+
+function markRows(){
+  document.querySelectorAll("#rows tr").forEach(tr=>{
+    const id = tr.getAttribute("onclick").match(/'([^']+)'/)[1];
+    tr.classList.toggle("sel", id===selected);
+  });
+}
 
 function renderSelected(){
   const r = runs.find(x=>x.run_id===selected);
@@ -130,32 +178,65 @@ function renderSelected(){
 
 function drawChart(frontier){
   const c = document.getElementById("chart"), ctx = c.getContext("2d");
-  ctx.clearRect(0,0,c.width,c.height);
+  // Match the backing store to the canvas's real on-screen size × devicePixelRatio
+  // so the plot is crisp and undistorted instead of a stretched 800×200 bitmap.
+  const dpr = window.devicePixelRatio || 1;
+  const rect = c.getBoundingClientRect();
+  const W = Math.max(1, Math.round(rect.width)), H = Math.max(1, Math.round(rect.height));
+  if (c.width !== W*dpr || c.height !== H*dpr){ c.width = W*dpr; c.height = H*dpr; }
+  ctx.setTransform(dpr,0,0,dpr,0,0);     // draw in CSS pixels
+  ctx.clearRect(0,0,W,H);
+
   const pts = frontier.map((v,i)=>[i,v]).filter(p=>p[1]!=null);
   if (pts.length<1){ document.getElementById("chart-note").textContent="no scored runs yet"; return; }
-  const xs=pts.map(p=>p[0]), ys=pts.map(p=>p[1]);
+  const ys=pts.map(p=>p[1]);
   const xmin=0, xmax=Math.max(1,frontier.length-1);
   const ymin=Math.min(...ys), ymax=Math.max(...ys);
-  const pad=30, W=c.width, H=c.height;
+  const pad=34;
   const X=i=>pad+(i-xmin)/(xmax-xmin||1)*(W-2*pad);
   const Y=v=>H-pad-( (v-ymin)/((ymax-ymin)||1) )*(H-2*pad);
-  // axes
-  ctx.strokeStyle="#30363d"; ctx.beginPath();
+  ctx.strokeStyle="#30363d"; ctx.lineWidth=1; ctx.beginPath();
   ctx.moveTo(pad,H-pad); ctx.lineTo(W-pad,H-pad); ctx.moveTo(pad,pad); ctx.lineTo(pad,H-pad);
   ctx.stroke();
-  // line
   ctx.strokeStyle="#3fb950"; ctx.lineWidth=2; ctx.beginPath();
   pts.forEach((p,k)=>{ const x=X(p[0]),y=Y(p[1]); k?ctx.lineTo(x,y):ctx.moveTo(x,y); });
   ctx.stroke();
+
+  // Highlight the currently-selected run's position on the frontier line.
+  const selIdx = runs.findIndex(r => r.run_id===selected);
+  if (selIdx>=0 && frontier[selIdx]!=null){
+    const x=X(selIdx), y=Y(frontier[selIdx]);
+    ctx.strokeStyle="#30363d"; ctx.setLineDash([3,3]); ctx.lineWidth=1; ctx.beginPath();
+    ctx.moveTo(x,H-pad); ctx.lineTo(x,y); ctx.stroke(); ctx.setLineDash([]);  // dropline to axis
+    ctx.beginPath(); ctx.arc(x,y,4.5,0,2*Math.PI);
+    ctx.fillStyle="#58a6ff"; ctx.fill();
+    ctx.lineWidth=2; ctx.strokeStyle="#0d1117"; ctx.stroke();  // halo so it reads on the line
+  }
+
   ctx.fillStyle="#8b949e"; ctx.font="10px monospace";
-  ctx.fillText(ymax.toExponential(2), 2, pad+4);
-  ctx.fillText(ymin.toExponential(2), 2, H-pad);
+  ctx.fillText(ymax.toExponential(2), 4, pad);
+  ctx.fillText(ymin.toExponential(2), 4, H-pad+4);
   document.getElementById("chart-note").textContent =
     `best MSE ${ymin.toExponential(3)} over ${frontier.length} runs`;
 }
 
-refresh();
-setInterval(refresh, 3000);
+// Live updates via Server-Sent Events; fall back to polling if the stream drops.
+let pollTimer = null;
+function startPolling(){
+  if (pollTimer) return;
+  const tick = async () => { try { update(await (await fetch("/api/runs")).json()); } catch(e){} };
+  tick(); pollTimer = setInterval(tick, 3000);
+}
+function startStream(){
+  const es = new EventSource("/api/stream");
+  es.onmessage = (e) => { if (pollTimer){ clearInterval(pollTimer); pollTimer=null; }
+                          try { update(JSON.parse(e.data)); } catch(err){} };
+  es.onerror = () => { startPolling(); };   // browser auto-reconnects; poll meanwhile
+}
+
+window.addEventListener("resize", () => drawChart(lastFrontier));
+updateFollowBtn();
+startStream();
 </script>
 </body>
 </html>
