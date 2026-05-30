@@ -1,12 +1,17 @@
 # fractalsearch
 
-Autonomous research into **the best algorithm to fit the Mandelbrot set** — learning the
-map `(real, imag) -> measure of escape iterations`. A loose framework where an agent
-proposes approaches, the harness scores them on a fixed metric under a fixed time budget,
-and a live control panel lets a human watch progress and visualize the best solutions.
+Can AI Agents do AI research?
 
-A sibling of [`autoresearch`](../autoresearch) — same paradigm (immutable harness +
-mutable candidate + fixed budget + keep/discard loop), applied to fractal fitting.
+
+This project attempts to facilitate this strange loop on a toy ML problem:
+How well can a function approximator fit the mandelbrot set? 
+It is a low-dimensional curve-fitting problem, like fitting an image, but this image has infinite detail and complexity at every scale. You cannot 'overfit' on the mandelbrot dataset. 
+This has been a [pet project of mine](https://github.com/MaxRobinsonTheGreat/mandelbrotnn) for many years, and I've run many of my own experiments on it. Because it is so simple, easy to run, and not resource-intensive, it is perfect for this kind of AI research loop. 
+
+
+The idea and code is directly adapted form Karpathy's [autoresearch](https://github.com/karpathy/autoresearch). 
+Virtually all code was AI generated. 
+
 
 ## Layout
 
@@ -53,9 +58,3 @@ uv run uvicorn dashboard.app:app --port 8000
 
 For a quick experiment loop, see `AGENT.md` — point an agent at it and it will iterate
 autonomously, committing each idea and keeping only what lowers MSE.
-
-## Changing the target
-
-The output definition (smooth iterations, raw count, binary membership, log-scaled, …)
-lives entirely in `harness/groundtruth.py`. Change it there and start a fresh run tag —
-past results become incomparable once the target changes.

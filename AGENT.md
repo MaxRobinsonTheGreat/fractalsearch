@@ -1,10 +1,11 @@
-# fractalsearch — autonomous research protocol
+# fractalsearch — Autonomous AI Research
 
 This is an experiment in having an LLM agent do its own open-ended research: **find the
 best algorithm to fit the Mandelbrot set**, i.e. learn the map `(real, imag) -> target`
-defined in `harness/groundtruth.py`. You are that agent.
+defined in `harness/groundtruth.py`, while still being a universal function approximator.
+You are that agent.
 
-## The shape of the problem
+## The Goal
 
 - The target function lives in `harness/groundtruth.py` (smooth normalized escape time,
   values in `[0, 1]`). It is **immutable** — read it, never change it.
@@ -12,7 +13,9 @@ defined in `harness/groundtruth.py`. You are that agent.
   **Lower is better. This is the only thing you are optimizing.**
 - Each run trains for a **fixed 5-minute budget** (a run is force-killed at 10 minutes).
   Because the budget is fixed, you don't trade off compute — use it all. A massive
-  network that scores better *is* better. Param count and speed do not matter.
+  network that scores better *is* better. Param count and speed do not matter, except in that they
+  might limit run-time.
+- Discover novel architectures, training methods, and algorithms to achieve this goal. 
 
 ## Setup (first time on a fresh run)
 
@@ -24,21 +27,29 @@ defined in `harness/groundtruth.py`. You are that agent.
    - `harness/evaluate.py` — the runner + metric (read-only).
    - `solutions/baseline_mlp.py` — the template to copy.
 3. Establish the baseline first: `uv run python -m harness.evaluate solutions/baseline_mlp.py`.
+4. With human approval, start the dashboard found in `dashboard` so progress can be monitored.
+```
+# launch the control panel, then open http://localhost:8000
+uv run uvicorn dashboard.app:app --port 8000
+```
 
 ## What you CAN do
 
 - **Create and edit files in `solutions/`.** Each file is one approach and must expose a
   module-level `SOLUTION` instance (or a `build()` factory) implementing `Solution`.
-  Everything inside a solution is fair game: architecture, Fourier/positional features,
+  Everything inside a solution is fair game: architecture, additional features,
   activations, optimizer, LR schedule, sampling strategy (uniform vs. boundary-
   oversampled vs. adaptive vs. multi-resolution/curriculum), loss shaping, normalization,
-  ensembling, closed-form/analytic components, KANs, splines — anything that runs in the
-  time budget and produces `predict(coords) -> values in [0,1]`.
+  ensembling, closed-form/analytic components. You can use any universal ML method
+  with the form `predict(coords) -> values in [0,1]`.
+- Search the web for research or ideas, while being open to novel experimentation.
 
 ## What you CANNOT do
 
 - Modify anything under `harness/` — the target, the `Solution` interface, the evaluation
   metric, the time budget. These are the ground truth and must not be gamed.
+- Hard-code the logic of the mandelbrot set into the solution itself. Remember the algorithm MUST still be
+  a universal function approximator, able to fit any dataset.
 - Add dependencies beyond `pyproject.toml` (torch, numpy, pillow are available).
 
 ## The experiment loop — LOOP FOREVER
@@ -64,17 +75,5 @@ and logs status `timeout`; treat that as a discard.
 
 **NEVER STOP.** Once the loop has begun, do not pause to ask the human whether to
 continue. They may be asleep and expect a stack of results when they return. If you run
-out of ideas, think harder: re-read the ground truth for structure to exploit, revisit
-mandelbrotnn findings (Fourier features + skip connections were strongest; Taylor features
-were poor), combine near-misses, try more radical architectures or sampling schemes. The
-loop runs until the human interrupts you.
-
-## Ideas to seed thinking (not a checklist)
-
-- Higher Fourier order / 2D Fourier basis / random Fourier features (RFF).
-- Boundary-aware sampling: the set boundary is fractal and carries almost all the error —
-  oversample where `0 < target < 1`, or sample adaptively from current high-error regions.
-- Deeper/wider skip nets; SIREN/sine activations; gaussian/wavelet activations.
-- Learning-rate schedules (warmup + cosine/linear decay), AdamW, Muon.
-- Multi-resolution / progressive training; hash-grid (instant-NGP style) encodings.
-- Ensembles or mixture-of-experts over regions.
+out of ideas, think harder: re-read the ground truth for structure to exploit, search the internet,
+combine near-misses, try more radical architectures or sampling schemes. The loop runs until the human interrupts you.
