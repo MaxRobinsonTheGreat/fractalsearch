@@ -1,0 +1,15 @@
+# Experiment outputs (kept local, not version controlled)
+runs/
+runs.jsonl
+
+# Cached ground-truth eval fixtures
+.cache/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.python-version.local
+
+# uv
+# (uv.lock IS committed, like autoresearch)

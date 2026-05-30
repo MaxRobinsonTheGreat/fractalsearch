@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>fractalsearch · control panel</title>
+<style>
+  :root { --bg:#0d1117; --panel:#161b22; --line:#30363d; --fg:#e6edf3; --mut:#8b949e;
+          --accent:#58a6ff; --good:#3fb950; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg);
+         font:14px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; }
+  header { padding:14px 20px; border-bottom:1px solid var(--line); display:flex;
+           align-items:baseline; gap:16px; }
+  header h1 { font-size:16px; margin:0; letter-spacing:.5px; }
+  header .stat { color:var(--mut); font-size:12px; }
+  header .stat b { color:var(--fg); }
+  .wrap { display:grid; grid-template-columns: 1fr 1fr; gap:16px; padding:16px; }
+  .panel { background:var(--panel); border:1px solid var(--line); border-radius:8px;
+           padding:14px; }
+  .panel h2 { font-size:12px; text-transform:uppercase; letter-spacing:1px;
+              color:var(--mut); margin:0 0 10px; }
+  .full { grid-column: 1 / -1; }
+  table { width:100%; border-collapse:collapse; font-size:12px; }
+  th, td { text-align:left; padding:5px 8px; border-bottom:1px solid var(--line);
+           white-space:nowrap; }
+  th { color:var(--mut); font-weight:600; }
+  tr.best td { color:var(--good); }
+  tr.sel td { background:#1f2630; }
+  tr:hover td { background:#1c222b; cursor:pointer; }
+  td.num { text-align:right; font-variant-numeric:tabular-nums; }
+  .pill { padding:1px 7px; border-radius:10px; font-size:11px; }
+  .ok{background:#1a3a24;color:var(--good);} .crash{background:#3a1a1a;color:#f85149;}
+  .timeout{background:#3a311a;color:#d29922;} .running{background:#1a2a3a;color:var(--accent);}
+  img.render { width:100%; image-rendering:pixelated; border:1px solid var(--line);
+               border-radius:4px; background:#000; }
+  .imglabels { display:flex; justify-content:space-around; color:var(--mut);
+               font-size:11px; margin-top:4px; }
+  canvas { width:100%; height:200px; display:block; }
+  .muted { color:var(--mut); font-size:12px; }
+  .gt { max-width:260px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🌀 fractalsearch</h1>
+  <span class="stat">runs <b id="s-count">–</b></span>
+  <span class="stat">scored <b id="s-ok">–</b></span>
+  <span class="stat">best MSE <b id="s-best">–</b></span>
+  <span class="stat" style="margin-left:auto" id="s-time">–</span>
+</header>
+
+<div class="wrap">
+  <div class="panel">
+    <h2>Best-MSE over time</h2>
+    <canvas id="chart" width="800" height="200"></canvas>
+    <div class="muted" id="chart-note"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Ground truth (target)</h2>
+    <img class="render gt" id="gt" src="/api/groundtruth" alt="ground truth"/>
+    <div class="muted">The function every solution is trying to learn.</div>
+  </div>
+
+  <div class="panel full">
+    <h2>Selected solution <span id="sel-name" class="muted"></span></h2>
+    <img class="render" id="preview" alt="select a run"/>
+    <div class="imglabels"><span>ground truth</span><span>prediction</span><span>abs error</span></div>
+    <div class="muted" id="sel-desc"></div>
+  </div>
+
+  <div class="panel full">
+    <h2>Leaderboard</h2>
+    <table>
+      <thead><tr>
+        <th>run</th><th>name</th><th class="num">MSE</th><th class="num">MAE</th>
+        <th class="num">PSNR</th><th class="num">boundary</th><th class="num">train s</th>
+        <th>status</th><th>description</th>
+      </tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+let selected = null, runs = [];
+
+function fmt(x, d=6){ return (x==null) ? "–" : Number(x).toFixed(d); }
+
+async function refresh(){
+  let data;
+  try { data = await (await fetch("/api/runs")).json(); }
+  catch(e){ return; }
+  runs = data.runs;
+  document.getElementById("s-count").textContent = data.count;
+  document.getElementById("s-ok").textContent = data.ok_count;
+  document.getElementById("s-time").textContent = new Date().toLocaleTimeString();
+
+  const ok = runs.filter(r => r.status==="ok" && r.mse!=null);
+  const best = ok.length ? ok.reduce((a,b)=>a.mse<b.mse?a:b) : null;
+  document.getElementById("s-best").textContent = best ? fmt(best.mse,6) : "–";
+  if (selected===null && best) selected = best.run_id;
+
+  // leaderboard sorted by mse (scored first), then unscored
+  const sorted = [...runs].sort((a,b)=>{
+    const am=(a.mse==null)?Infinity:a.mse, bm=(b.mse==null)?Infinity:b.mse;
+    return am-bm;
+  });
+  const rows = sorted.map(r => {
+    const cls = [r.run_id===(best&&best.run_id)?"best":"", r.run_id===selected?"sel":""].join(" ");
+    return `<tr class="${cls}" onclick="select('${r.run_id}')">
+      <td>${r.run_id}</td><td>${r.name||""}</td>
+      <td class="num">${fmt(r.mse,6)}</td><td class="num">${fmt(r.mae,4)}</td>
+      <td class="num">${fmt(r.psnr,1)}</td><td class="num">${fmt(r.boundary_mse,6)}</td>
+      <td class="num">${fmt(r.train_seconds,0)}</td>
+      <td><span class="pill ${r.status}">${r.status}</span></td>
+      <td class="muted">${(r.description||"").slice(0,80)}</td></tr>`;
+  }).join("");
+  document.getElementById("rows").innerHTML = rows;
+
+  drawChart(data.frontier);
+  renderSelected();
+}
+
+function select(id){ selected = id; renderSelected();
+  document.querySelectorAll("#rows tr").forEach(tr=>tr.classList.remove("sel")); }
+
+function renderSelected(){
+  const r = runs.find(x=>x.run_id===selected);
+  const img = document.getElementById("preview");
+  if (!r){ img.removeAttribute("src"); return; }
+  img.src = "/api/preview/"+r.run_id+"?t="+Date.now();
+  document.getElementById("sel-name").textContent = r ? `· ${r.name} (${r.run_id})` : "";
+  document.getElementById("sel-desc").textContent = r.description || "";
+}
+
+function drawChart(frontier){
+  const c = document.getElementById("chart"), ctx = c.getContext("2d");
+  ctx.clearRect(0,0,c.width,c.height);
+  const pts = frontier.map((v,i)=>[i,v]).filter(p=>p[1]!=null);
+  if (pts.length<1){ document.getElementById("chart-note").textContent="no scored runs yet"; return; }
+  const xs=pts.map(p=>p[0]), ys=pts.map(p=>p[1]);
+  const xmin=0, xmax=Math.max(1,frontier.length-1);
+  const ymin=Math.min(...ys), ymax=Math.max(...ys);
+  const pad=30, W=c.width, H=c.height;
+  const X=i=>pad+(i-xmin)/(xmax-xmin||1)*(W-2*pad);
+  const Y=v=>H-pad-( (v-ymin)/((ymax-ymin)||1) )*(H-2*pad);
+  // axes
+  ctx.strokeStyle="#30363d"; ctx.beginPath();
+  ctx.moveTo(pad,H-pad); ctx.lineTo(W-pad,H-pad); ctx.moveTo(pad,pad); ctx.lineTo(pad,H-pad);
+  ctx.stroke();
+  // line
+  ctx.strokeStyle="#3fb950"; ctx.lineWidth=2; ctx.beginPath();
+  pts.forEach((p,k)=>{ const x=X(p[0]),y=Y(p[1]); k?ctx.lineTo(x,y):ctx.moveTo(x,y); });
+  ctx.stroke();
+  ctx.fillStyle="#8b949e"; ctx.font="10px monospace";
+  ctx.fillText(ymax.toExponential(2), 2, pad+4);
+  ctx.fillText(ymin.toExponential(2), 2, H-pad);
+  document.getElementById("chart-note").textContent =
+    `best MSE ${ymin.toExponential(3)} over ${frontier.length} runs`;
+}
+
+refresh();
+setInterval(refresh, 3000);
+</script>
+</body>
+</html>
