@@ -25,7 +25,7 @@ You are that agent.
    - `harness/groundtruth.py` — the target (read-only).
    - `harness/interface.py` — the `Solution` contract (read-only).
    - `harness/evaluate.py` — the runner + metric (read-only).
-   - `solutions/baseline_mlp.py` — the template to copy.
+   - `solutions/baseline_mlp.py` — the template to copy and improve upon.
 3. Establish the baseline first: `uv run python -m harness.evaluate solutions/baseline_mlp.py`.
 4. With human approval, start the dashboard found in `dashboard` so progress can be monitored. `uv run uvicorn dashboard.app:app --port 8000` Do not shut it down unless asked.
 5. Await human approval before starting a research loop.
@@ -39,7 +39,9 @@ You are that agent.
   oversampled vs. adaptive vs. multi-resolution/curriculum), loss shaping, normalization,
   ensembling, closed-form/analytic components. You can use any universal ML method
   with the form `predict(coords) -> values in [0,1]`.
-- Search the web for research or ideas, while being open to novel experimentation.
+- Search the web for research or ideas, while being open to your own crazy ideas.
+- Temporarily accept higher loss or worse performance to allow for experimentation and avoid getting stuck in local minima.
+- Write notes in `solutions/notebook.md` to keep track of ideas and follow up on experiments.
 
 ## What you CANNOT do
 

@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mandelbrot Target Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0b0e;
+    --panel:rgba(18,20,26,0.82);
+    --line:rgba(255,255,255,0.10);
+    --line2:rgba(255,255,255,0.06);
+    --txt:#e7e3d8;
+    --muted:#8b8a82;
+    --accent:#ff9e3d;
+    --accent-dim:rgba(255,158,61,0.16);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--txt);
+    font-family:'IBM Plex Mono',monospace;}
+  #glcanvas{position:fixed;inset:0;width:100vw;height:100vh;display:block;cursor:grab;}
+  #glcanvas.drag{cursor:grabbing;}
+
+  .panel{
+    position:fixed;top:18px;left:18px;width:288px;z-index:10;
+    background:var(--panel);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+    border:1px solid var(--line);border-radius:14px;
+    padding:18px 18px 16px;
+    box-shadow:0 18px 50px -12px rgba(0,0,0,0.7);
+  }
+  .title{font-family:'Instrument Serif',serif;font-size:30px;line-height:0.95;
+    letter-spacing:0.2px;font-weight:400;}
+  .title .it{font-style:italic;color:var(--accent);}
+  .sub{font-size:10.5px;color:var(--muted);margin-top:6px;letter-spacing:0.4px;
+    text-transform:uppercase;}
+  .rule{height:1px;background:var(--line2);margin:15px 0;}
+
+  .lbl{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);
+    margin-bottom:8px;display:flex;justify-content:space-between;align-items:baseline;}
+  .lbl b{color:var(--accent);font-weight:600;letter-spacing:0.5px;}
+
+  .opts{display:flex;flex-direction:column;gap:5px;}
+  .opt{appearance:none;border:1px solid var(--line);background:transparent;color:var(--txt);
+    text-align:left;font-family:inherit;font-size:12px;padding:8px 10px;border-radius:8px;
+    cursor:pointer;transition:.13s;display:flex;align-items:center;gap:9px;}
+  .opt:hover{border-color:rgba(255,158,61,0.5);background:rgba(255,158,61,0.05);}
+  .opt.on{border-color:var(--accent);background:var(--accent-dim);color:#fff;}
+  .opt .dot{width:6px;height:6px;border-radius:50%;background:var(--muted);flex:none;transition:.13s;}
+  .opt.on .dot{background:var(--accent);box-shadow:0 0 8px var(--accent);}
+  .opt small{display:block;color:var(--muted);font-size:9.5px;margin-top:2px;letter-spacing:.2px;}
+  .opt.on small{color:rgba(255,255,255,0.6);}
+
+  input[type=range]{-webkit-appearance:none;width:100%;height:3px;border-radius:3px;
+    background:var(--line);outline:none;cursor:pointer;}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;height:13px;
+    border-radius:50%;background:var(--accent);cursor:pointer;box-shadow:0 0 0 4px rgba(255,158,61,0.15);}
+  input[type=range]::-moz-range-thumb{width:13px;height:13px;border:none;border-radius:50%;
+    background:var(--accent);cursor:pointer;}
+  input[type=range]:disabled{opacity:.3;cursor:not-allowed;}
+
+  .row{margin-bottom:14px;}
+  .toggle{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;}
+  .toggle button{flex:1;background:transparent;border:none;color:var(--muted);
+    font-family:inherit;font-size:11px;padding:7px;cursor:pointer;transition:.13s;letter-spacing:.5px;}
+  .toggle button.on{background:var(--accent-dim);color:#fff;}
+
+  .foot{display:flex;justify-content:space-between;align-items:center;margin-top:4px;}
+  .reset{background:transparent;border:1px solid var(--line);color:var(--muted);
+    font-family:inherit;font-size:10px;letter-spacing:1px;text-transform:uppercase;
+    padding:7px 12px;border-radius:8px;cursor:pointer;transition:.13s;}
+  .reset:hover{border-color:var(--accent);color:var(--accent);}
+  .hint{font-size:9.5px;color:var(--muted);line-height:1.5;}
+
+  .hud{position:fixed;bottom:16px;left:18px;z-index:10;font-size:10.5px;color:var(--muted);
+    background:var(--panel);backdrop-filter:blur(8px);border:1px solid var(--line2);
+    border-radius:9px;padding:8px 12px;letter-spacing:.3px;line-height:1.7;}
+  .hud b{color:var(--txt);font-weight:500;}
+  .hud .warn{color:var(--accent);}
+  @media(max-width:560px){.panel{width:calc(100vw - 36px);} .hud{display:none;}}
+</style>
+</head>
+<body>
+<canvas id="glcanvas"></canvas>
+
+<div class="panel">
+  <div class="title">Mandelbrot <span class="it">Lab</span></div>
+  <div class="sub">output-transform explorer</div>
+  <div class="rule"></div>
+
+  <div class="row">
+    <div class="lbl">Target transform</div>
+    <div class="opts" id="opts">
+      <button class="opt" data-t="0"><span class="dot"></span><span>In / out (binary)<small>membership only · infinite detail · clean gradients</small></span></button>
+      <button class="opt on" data-t="1"><span class="dot"></span><span>Periodic · log-distance<small>bounded, never saturates · scale-free</small></span></button>
+      <button class="opt" data-t="2"><span class="dot"></span><span>Periodic · smooth-iter<small>uneven bands — see why iters needs warping</small></span></button>
+      <button class="opt" data-t="3"><span class="dot"></span><span>Distance (monotonic)<small>collapses toward 0 at the boundary</small></span></button>
+      <button class="opt" data-t="4"><span class="dot"></span><span>Smooth-iter (classic)<small>familiar continuous coloring</small></span></button>
+      <button class="opt" data-t="5"><span class="dot"></span><span>Your smoothing<small>1 − 1/(ν/S + 1) · monotonic · in-set → 1</small></span></button>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="lbl"><span id="betaLbl">Frequency&nbsp;β</span><b id="betaVal">1.00</b></div>
+    <input type="range" id="beta" min="0" max="1000" value="667">
+  </div>
+
+  <div class="row">
+    <div class="lbl"><span>Max iterations</span><b id="iterVal">600</b></div>
+    <input type="range" id="iter" min="50" max="2000" step="10" value="600">
+  </div>
+
+  <div class="foot">
+    <span class="hint">drag&nbsp;·&nbsp;pan<br>scroll&nbsp;·&nbsp;zoom</span>
+    <button class="reset" id="reset">Reset view</button>
+  </div>
+</div>
+
+<div class="hud" id="hud"></div>
+
+<script>
+const canvas = document.getElementById('glcanvas');
+const gl = canvas.getContext('webgl2', {antialias:false, preserveDrawingBuffer:false});
+if(!gl){ document.body.innerHTML='<p style="padding:40px;font-family:monospace">WebGL2 not available in this browser.</p>'; }
+
+const VERT = `#version 300 es
+in vec2 p; void main(){ gl_Position = vec4(p,0.0,1.0); }`;
+
+const FRAG = `#version 300 es
+precision highp float;
+out vec4 outColor;
+uniform vec2  uRes;
+uniform vec2  uCenter;
+uniform float uScale;     // world units per pixel
+uniform int   uMaxIter;
+uniform int   uTransform;
+uniform float uBeta;
+
+vec2 cmul(vec2 a, vec2 b){ return vec2(a.x*b.x - a.y*b.y, a.x*b.y + a.y*b.x); }
+
+void main(){
+  vec2 frag = gl_FragCoord.xy - 0.5*uRes;
+  vec2 c = uCenter + frag*uScale;
+
+  vec2 z = vec2(0.0);
+  vec2 dz = vec2(0.0);
+  const float R2 = 1.0e8;      // bailout^2 (R=1e4)
+  bool escaped = false;
+  int iter = 0;
+  for(int i=0;i<uMaxIter;i++){
+    dz = 2.0*cmul(z,dz) + vec2(1.0,0.0);
+    z  = cmul(z,z) + c;
+    iter = i;
+    if(dot(z,z) > R2){ escaped = true; break; }
+  }
+
+  float zmag = length(z);
+  float smoothI = float(iter) + 1.0 - log(log(max(zmag,2.0)))/log(2.0);
+  float dist = zmag*log(max(zmag,1.0001)) / max(length(dz),1e-20);
+
+  float gray;     // grayscale display 0..1
+  float pt;       // palette parameter
+  bool exterior_only = true;
+
+  if(uTransform==0){                       // binary in/out
+    gray = escaped ? 0.0 : 1.0;
+    pt = gray; exterior_only = false;
+  } else if(uTransform==1){                // periodic log-distance
+    float ph = uBeta * log(max(dist,1e-30));
+    gray = escaped ? (0.5 + 0.5*sin(6.28318530718*ph)) : 1.0;
+    pt = fract(ph); exterior_only = false;
+  } else if(uTransform==2){                // periodic smooth-iter
+    float ph = uBeta * smoothI;
+    gray = escaped ? (0.5 + 0.5*sin(6.28318530718*ph)) : 1.0;
+    pt = fract(ph); exterior_only = false;
+  } else if(uTransform==3){                // distance monotonic
+    gray = 1.0 - 1.0/(1.0 + 18.0*dist);
+    pt = gray;
+  } else if(uTransform==4){                // smooth-iter classic
+    float ph = (uBeta*0.15) * smoothI;
+    gray = escaped ? (0.5 + 0.5*sin(6.28318530718*ph)) : 1.0;
+    pt = fract(ph); exterior_only = false;
+  } else {                                 // your smoothing: rational squash of continuous escape count
+    if(escaped){
+      float log_zn = log(max(zmag,1e-12));
+      float cont = (float(iter)+1.0) - log2(log_zn / 0.6931471805599453); // n+1 - log2(log|z|/log2)
+      float nu = max(cont, 0.0);
+      float S = uBeta * 30.0;                                             // SMOOTHNESS (beta knob)
+      gray = 1.0 - 1.0/(nu/S + 1.0);
+    } else {
+      gray = 1.0;                                                         // in-set -> 1.0
+    }
+    pt = gray; exterior_only = false;
+  }
+
+  vec3 col;
+  if(uTransform==0){
+    col = vec3(gray);                                  // pure black / white
+  } else if(!escaped && exterior_only){
+    col = vec3(0.015);                                 // interior of the set
+  } else {
+    col = vec3(gray);
+  }
+  outColor = vec4(col,1.0);
+}`;
+
+function sh(type,src){const s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);
+  if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))console.error(gl.getShaderInfoLog(s));return s;}
+const prog = gl.createProgram();
+gl.attachShader(prog,sh(gl.VERTEX_SHADER,VERT));
+gl.attachShader(prog,sh(gl.FRAGMENT_SHADER,FRAG));
+gl.linkProgram(prog);
+if(!gl.getProgramParameter(prog,gl.LINK_STATUS))console.error(gl.getProgramInfoLog(prog));
+gl.useProgram(prog);
+
+const buf = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER,buf);
+gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
+const loc = gl.getAttribLocation(prog,'p');
+gl.enableVertexAttribArray(loc);
+gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
+
+const U = {
+  res:gl.getUniformLocation(prog,'uRes'),
+  center:gl.getUniformLocation(prog,'uCenter'),
+  scale:gl.getUniformLocation(prog,'uScale'),
+  maxIter:gl.getUniformLocation(prog,'uMaxIter'),
+  transform:gl.getUniformLocation(prog,'uTransform'),
+  beta:gl.getUniformLocation(prog,'uBeta'),
+};
+
+// ---- state ----
+const HOME = {cx:-0.6, cy:0.0, span:3.4};
+let state = { center:[HOME.cx,HOME.cy], scale:1, transform:1, beta:1.0, maxIter:600 };
+let W=0,H=0,DPR=1;
+
+function resize(){
+  DPR = Math.min(window.devicePixelRatio||1, 2);
+  W = Math.floor(innerWidth*DPR); H = Math.floor(innerHeight*DPR);
+  canvas.width=W; canvas.height=H;
+  if(state.scale===1) state.scale = HOME.span / W;   // first fit
+  gl.viewport(0,0,W,H);
+  draw();
+}
+
+function sliderToBeta(v){ return Math.pow(10, (v/1000)*3 - 2); } // 0.01 .. 10
+function betaToSlider(b){ return Math.round((Math.log10(b)+2)/3*1000); }
+
+function draw(){
+  gl.useProgram(prog);
+  gl.uniform2f(U.res,W,H);
+  gl.uniform2f(U.center,state.center[0],state.center[1]);
+  gl.uniform1f(U.scale,state.scale);
+  gl.uniform1i(U.maxIter,state.maxIter);
+  gl.uniform1i(U.transform,state.transform);
+  gl.uniform1f(U.beta,state.beta);
+  gl.drawArrays(gl.TRIANGLES,0,3);
+  updateHUD();
+}
+
+function updateHUD(){
+  const mag = (HOME.span / W) / state.scale;
+  const fmt = n => (Math.abs(n)<1e-3?n.toExponential(3):n.toPrecision(7));
+  let warn = mag > 4e4 ? ' <span class="warn">(near float32 limit)</span>' : '';
+  document.getElementById('hud').innerHTML =
+    `zoom <b>${mag.toExponential(2)}×</b>${warn} &nbsp;|&nbsp; ` +
+    `c = <b>${fmt(state.center[0])}</b> + <b>${fmt(state.center[1])}</b>i`;
+}
+
+// ---- interaction ----
+let dragging=false, last=[0,0];
+canvas.addEventListener('mousedown',e=>{dragging=true;last=[e.clientX,e.clientY];canvas.classList.add('drag');});
+addEventListener('mouseup',()=>{dragging=false;canvas.classList.remove('drag');});
+addEventListener('mousemove',e=>{
+  if(!dragging)return;
+  const dx=(e.clientX-last[0])*DPR, dy=(e.clientY-last[1])*DPR;
+  state.center[0] -= dx*state.scale;
+  state.center[1] += dy*state.scale;   // screen y is down; imag is up
+  last=[e.clientX,e.clientY];
+  draw();
+});
+canvas.addEventListener('wheel',e=>{
+  e.preventDefault();
+  const rect=canvas.getBoundingClientRect();
+  const px=(e.clientX-rect.left)*DPR - 0.5*W;
+  const py=-((e.clientY-rect.top)*DPR - 0.5*H);
+  // world point under cursor
+  const wx=state.center[0]+px*state.scale;
+  const wy=state.center[1]+py*state.scale;
+  const f=Math.exp(e.deltaY*0.0012);
+  state.scale*=f;
+  // keep that world point under the cursor
+  state.center[0]=wx-px*state.scale;
+  state.center[1]=wy-py*state.scale;
+  draw();
+},{passive:false});
+
+// touch (pinch + drag)
+let touchMode=null, tLast=null, tDist=0;
+canvas.addEventListener('touchstart',e=>{
+  if(e.touches.length===1){touchMode='pan';tLast=[e.touches[0].clientX,e.touches[0].clientY];}
+  else if(e.touches.length===2){touchMode='zoom';tDist=tdist(e);}
+},{passive:false});
+canvas.addEventListener('touchmove',e=>{
+  e.preventDefault();
+  if(touchMode==='pan'&&e.touches.length===1){
+    const dx=(e.touches[0].clientX-tLast[0])*DPR, dy=(e.touches[0].clientY-tLast[1])*DPR;
+    state.center[0]-=dx*state.scale; state.center[1]+=dy*state.scale;
+    tLast=[e.touches[0].clientX,e.touches[0].clientY]; draw();
+  } else if(touchMode==='zoom'&&e.touches.length===2){
+    const nd=tdist(e); const f=tDist/nd; state.scale*=f; tDist=nd; draw();
+  }
+},{passive:false});
+function tdist(e){const a=e.touches[0],b=e.touches[1];return Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY);}
+
+// ---- controls ----
+const betaEl=document.getElementById('beta'), betaVal=document.getElementById('betaVal'),
+      betaLbl=document.getElementById('betaLbl');
+
+function updateBetaUI(){
+  const t=state.transform;
+  const usesBeta = (t===1||t===2||t===4||t===5);
+  betaEl.disabled = !usesBeta;
+  if(t===5){
+    const S = state.beta*30.0;
+    betaLbl.innerHTML='Smoothness&nbsp;S';
+    betaVal.textContent = S.toFixed(S<1?2:1);
+  } else if(usesBeta){
+    betaLbl.innerHTML='Frequency&nbsp;β';
+    betaVal.textContent = state.beta.toFixed(state.beta<1?3:2);
+  } else {
+    betaLbl.innerHTML='Frequency&nbsp;β';
+    betaVal.textContent='—';
+  }
+}
+
+document.getElementById('opts').addEventListener('click',e=>{
+  const b=e.target.closest('.opt'); if(!b)return;
+  document.querySelectorAll('.opt').forEach(o=>o.classList.remove('on'));
+  b.classList.add('on');
+  state.transform=parseInt(b.dataset.t);
+  updateBetaUI();
+  draw();
+});
+betaEl.addEventListener('input',()=>{
+  state.beta=sliderToBeta(parseFloat(betaEl.value));
+  updateBetaUI();
+  draw();
+});
+const iterEl=document.getElementById('iter'), iterVal=document.getElementById('iterVal');
+iterEl.addEventListener('input',()=>{
+  state.maxIter=parseInt(iterEl.value); iterVal.textContent=state.maxIter; draw();
+});
+document.getElementById('reset').addEventListener('click',()=>{
+  state.center=[HOME.cx,HOME.cy]; state.scale=HOME.span/W; draw();
+});
+
+betaEl.value=betaToSlider(state.beta);
+updateBetaUI();
+addEventListener('resize',resize);
+resize();
+</script>
+</body>
+</html>

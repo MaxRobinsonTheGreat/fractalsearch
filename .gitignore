@@ -6,6 +6,7 @@
 runs/**/*.pt
 runs/**/*.png
 run.log
+dashboard.log
 
 # Cached ground-truth eval fixtures
 .cache/

@@ -39,6 +39,8 @@
   th { color:var(--mut); font-weight:600; position:sticky; top:0; background:var(--panel); z-index:1; }
   tr.best td { color:var(--good); }
   tr.sel td { background:#1f2630; }
+  /* Drag-scrub the leaderboard without selecting row text. */
+  #rows { user-select:none; -webkit-user-select:none; }
   tbody tr:hover td { background:#1c222b; cursor:pointer; }
   td.num { text-align:right; font-variant-numeric:tabular-nums; }
 
@@ -443,16 +445,60 @@ function chartIndexAt(clientX){
 
 function setupChartHover(){
   const c = document.getElementById("chart");
-  c.addEventListener("mousemove", e => {
-    const idx = chartIndexAt(e.clientX);
+  let scrub = false;
+  // Select the run under the cursor; only re-render when it actually changes.
+  const selectAt = clientX => {
+    const idx = chartIndexAt(clientX);
+    if (idx==null || !runs[idx]) return;
+    hoverIdx = idx;
+    if (runs[idx].run_id !== selected) select(runs[idx].run_id);
+    else drawChart(lastFrontier);
+  };
+  c.addEventListener("pointerdown", e => {
+    if (chartIndexAt(e.clientX)==null) return;
+    scrub = true; c.setPointerCapture(e.pointerId);
+    c.style.cursor = "grabbing"; selectAt(e.clientX);
+  });
+  c.addEventListener("pointermove", e => {
+    if (scrub){ selectAt(e.clientX); return; }   // drag: selection follows the cursor
+    const idx = chartIndexAt(e.clientX);          // plain hover: just the marker/label
     if (idx !== hoverIdx){ hoverIdx = idx; c.style.cursor = idx!=null?"pointer":"default";
                            drawChart(lastFrontier); }
   });
-  c.addEventListener("mouseleave", () => { hoverIdx=null; drawChart(lastFrontier); });
-  c.addEventListener("click", e => {
-    const idx = chartIndexAt(e.clientX);
-    if (idx!=null && runs[idx]) select(runs[idx].run_id);
+  const end = () => { if (scrub){ scrub = false; c.style.cursor = "pointer"; } };
+  c.addEventListener("pointerup", end);
+  c.addEventListener("pointercancel", end);
+  c.addEventListener("mouseleave", () => { if (!scrub){ hoverIdx=null; drawChart(lastFrontier); } });
+}
+
+// Drag-scrub the leaderboard: press on a solution and drag across rows to continuously
+// update the selection (and the image/code panel), so you can watch the fit change.
+function setupBoardScrub(){
+  const tb = document.getElementById("rows");
+  let scrub = false;
+  const idOf = el => {
+    const tr = el && el.closest ? el.closest("tr") : null;
+    const a = tr && tr.getAttribute("onclick");
+    const m = a && a.match(/'([^']+)'/);
+    return m ? m[1] : null;
+  };
+  tb.addEventListener("pointerdown", e => {
+    const id = idOf(e.target);
+    if (!id) return;
+    e.preventDefault();             // don't begin a text selection while scrubbing
+    scrub = true;
+    if (id !== selected) select(id);
   });
+  // No pointer capture on the tbody — capturing would stop pointerover firing on the
+  // other rows. Without it, moving with the button held still hits each row underneath.
+  tb.addEventListener("pointerover", e => {
+    if (!scrub) return;
+    const id = idOf(e.target);
+    if (id && id !== selected) select(id);
+  });
+  const end = () => { scrub = false; };
+  window.addEventListener("pointerup", end);
+  window.addEventListener("pointercancel", end);
 }
 
 let pollTimer = null;
@@ -471,6 +517,7 @@ function startStream(){
 window.addEventListener("resize", () => drawChart(lastFrontier));
 setupViewer();
 setupChartHover();
+setupBoardScrub();
 setLayer("gt");
 updateFollowBtn();
 startStream();
