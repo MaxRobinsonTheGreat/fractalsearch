@@ -275,7 +275,7 @@ function setupViewer(){
 let gtLoaded = false;
 function renderSelected(){
   const r = runs.find(x=>x.run_id===selected);
-  if (!gtLoaded){ document.getElementById("img-gt").src = "/api/groundtruth?height=512";
+  if (!gtLoaded){ document.getElementById("img-gt").src = "/api/groundtruth";
                   gtLoaded = true; }
   const pred = document.getElementById("img-pred"), err = document.getElementById("img-err");
   const stats = document.getElementById("sel-stats");

@@ -153,18 +153,15 @@ def api_error(run_id: str):
 
 
 @app.get("/api/groundtruth")
-def api_groundtruth(height: int = 512):
-    """Reference render of the target fractal, aspect-correct and cached."""
-    os.makedirs(CACHE_DIR, exist_ok=True)
-    from harness import groundtruth as gt
-    coords, W, H = gt.aspect_grid(height, device="cpu")
-    cache = os.path.join(CACHE_DIR, f"groundtruth_{W}x{H}.png")
-    if not os.path.exists(cache):
-        from PIL import Image
-        from harness import colormap as cm
-        img = gt.mandelbrot(coords).reshape(H, W).numpy()
-        Image.fromarray(cm.apply(img, cm.VALUE_CMAP)).save(cache)
-    return FileResponse(cache, media_type="image/png")
+def api_groundtruth():
+    """Serve the committed 4K ground-truth reference (dashboard/static/groundtruth.png),
+    rendered on the eval grid so it is pixel-aligned with the prediction/error layers.
+    Regenerate after a window/target change: `python -m dashboard.make_groundtruth`."""
+    path = os.path.join(STATIC, "groundtruth.png")
+    if not os.path.exists(path):
+        raise HTTPException(404, "groundtruth.png missing — run "
+                                 "`python -m dashboard.make_groundtruth`")
+    return FileResponse(path, media_type="image/png")
 
 
 @app.get("/health")

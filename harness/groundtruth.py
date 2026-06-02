@@ -20,9 +20,14 @@ Target definition (current):
 import math
 import torch
 
-# --- View window (standard Mandelbrot framing; matches mandelbrotnn) ----------
-XMIN, XMAX = -2.5, 1.0
-YMIN, YMAX = -1.1, 1.1
+# --- View window --------------------------------------------------------------
+# Zoomed out a hair from the tighter [-2.5,1.0]x[-1.1,1.1] framing: the set's upper
+# and lower tips reach ~±1.12 and were being clipped at the top/bottom edges. This is
+# a centered ~9% zoom-out about the original center (-0.75, 0), so the whole set now
+# sits inside the frame with a small margin. (Changing the window changes what is being
+# fit -> past results are not comparable; this is a deliberate, fresh-slate change.)
+XMIN, XMAX = -2.65, 1.15
+YMIN, YMAX = -1.2, 1.2
 
 # --- Target parameters --------------------------------------------------------
 MAX_DEPTH = 100      # escape-time iteration cap (higher => sharper boundary detail)

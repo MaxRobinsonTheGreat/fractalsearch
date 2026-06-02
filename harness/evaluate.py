@@ -39,8 +39,12 @@ from harness.interface import FitContext, Solution
 # --- Fixed evaluation protocol constants --------------------------------------
 TRAIN_BUDGET_S = 300        # target training time handed to fit() (5 minutes)
 HARD_KILL_S = 600           # absolute backstop; run is killed past this (10 minutes)
-EVAL_RESX, EVAL_RESY = 2048, 2048   # 1M-point dense evaluation grid
-PREVIEW_RES = 512           # preview render HEIGHT (width set by aspect ratio)
+# 4K-class dense evaluation grid, aspect-correct so coordinate-space pixels are SQUARE.
+# The view window is 3.5 x 2.2 (aspect ~1.59, NOT 1:1), so a square grid would distort
+# the fractal. Width is anchored to the 4K UHD width; height is derived from the window
+# aspect. -> 3840 x 2414 ~= 9.3M points.
+EVAL_RESX = 3840
+EVAL_RESY = round(EVAL_RESX / gt.ASPECT)
 SEED = 1234
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -78,7 +82,10 @@ def load_solution(path: str) -> Solution:
 def eval_targets(device):
     """Fixed ground-truth values on the dense eval grid (cached to disk)."""
     os.makedirs(CACHE_DIR, exist_ok=True)
-    key = f"eval_{EVAL_RESX}x{EVAL_RESY}_d{gt.MAX_DEPTH}.pt"
+    # Window bounds are part of the cache identity: change the view window and the
+    # targets change even at the same resolution, so they must not be reused.
+    win = f"{gt.XMIN},{gt.XMAX},{gt.YMIN},{gt.YMAX}"
+    key = f"eval_{EVAL_RESX}x{EVAL_RESY}_d{gt.MAX_DEPTH}_w{win}.pt"
     cache = os.path.join(CACHE_DIR, key)
     coords = gt.make_grid(EVAL_RESX, EVAL_RESY, device=device)
     if os.path.exists(cache):
@@ -121,34 +128,27 @@ def git_commit() -> str:
         return "nogit"
 
 
-def save_preview(sol: Solution, run_dir: str, device):
-    """Render the run's prediction and its abs-error heatmap as separate PNGs.
+def save_artifacts(preds: torch.Tensor, targets: torch.Tensor, run_dir: str):
+    """Render the prediction and abs-error PNGs at the FULL eval resolution, reusing the
+    tensors already computed for scoring — no recompute, and pixel-exact with the metric.
 
-    The three layers the dashboard compares (ground truth | prediction | abs error)
-    are kept as independent, pixel-aligned images so the UI can switch between them
-    while preserving zoom/pan. Ground truth is identical for every run, so it is NOT
-    saved per-run — the dashboard renders it once via /api/groundtruth. We still write
-    a combined preview.png strip for backwards-compatibility with older tooling."""
+    The two layers the dashboard compares are written as standalone, pixel-aligned PNGs
+    so the UI can switch between them while preserving zoom/pan. Ground truth is identical
+    for every run, so it is NOT saved per-run — the dashboard renders it via
+    /api/groundtruth (same aspect ratio, so it overlays cleanly at any display size)."""
     try:
         from PIL import Image
         import numpy as np
         from harness import colormap as cm
-        coords, W, H = gt.aspect_grid(PREVIEW_RES, device=device)  # PREVIEW_RES = height
-        pred = predict_batched(sol, coords).reshape(H, W).cpu().numpy()
-        truth = gt.mandelbrot(coords).reshape(H, W).cpu().numpy()
+        H, W = EVAL_RESY, EVAL_RESX
+        pred = preds.reshape(H, W).cpu().numpy()
+        truth = targets.reshape(H, W).cpu().numpy()
         err = np.abs(pred - truth)
         err = err / max(err.max(), 1e-8)
-
-        pred_rgb = cm.apply(pred, cm.VALUE_CMAP)
-        err_rgb = cm.apply(err, "inferno")  # abs-error heatmap, inferno
-        Image.fromarray(pred_rgb).save(os.path.join(run_dir, "prediction.png"))
-        Image.fromarray(err_rgb).save(os.path.join(run_dir, "error.png"))
-
-        # Legacy combined strip [ ground truth | prediction | abs error ].
-        strip = np.concatenate([cm.apply(truth, cm.VALUE_CMAP), pred_rgb, err_rgb], axis=1)
-        Image.fromarray(strip).save(os.path.join(run_dir, "preview.png"))
+        Image.fromarray(cm.apply(pred, cm.VALUE_CMAP)).save(os.path.join(run_dir, "prediction.png"))
+        Image.fromarray(cm.apply(err, "inferno")).save(os.path.join(run_dir, "error.png"))
     except Exception as e:
-        print(f"(preview render skipped: {e})", flush=True)
+        print(f"(artifact render skipped: {e})", flush=True)
 
 
 def main():
@@ -205,7 +205,7 @@ def main():
         record.update(score(preds, targets))
         record["status"] = "ok"
 
-        save_preview(sol, run_dir, device)
+        save_artifacts(preds, targets, run_dir)
 
     except _HardTimeout:
         record["status"] = "timeout"
