@@ -99,6 +99,7 @@
       <button class="opt" data-t="3"><span class="dot"></span><span>Distance (monotonic)<small>collapses toward 0 at the boundary</small></span></button>
       <button class="opt" data-t="4"><span class="dot"></span><span>Smooth-iter (classic)<small>familiar continuous coloring</small></span></button>
       <button class="opt" data-t="5"><span class="dot"></span><span>Your smoothing<small>1 − 1/(ν/S + 1) · monotonic · in-set → 1</small></span></button>
+      <button class="opt" data-t="6"><span class="dot"></span><span>Periodic · log-iters<small>raw integer iters — flat plateaus, hard band edges</small></span></button>
     </div>
   </div>
 
@@ -182,7 +183,7 @@ void main(){
     float ph = (uBeta*0.15) * smoothI;
     gray = escaped ? (0.5 + 0.5*sin(6.28318530718*ph)) : 1.0;
     pt = fract(ph); exterior_only = false;
-  } else {                                 // your smoothing: rational squash of continuous escape count
+  } else if(uTransform==5){                // your smoothing: rational squash of continuous escape count
     if(escaped){
       float log_zn = log(max(zmag,1e-12));
       float cont = (float(iter)+1.0) - log2(log_zn / 0.6931471805599453); // n+1 - log2(log|z|/log2)
@@ -193,7 +194,11 @@ void main(){
       gray = 1.0;                                                         // in-set -> 1.0
     }
     pt = gray; exterior_only = false;
-  }
+  } else {                                 // periodic log-iters: like (1) but on the RAW
+    float ph = uBeta * log(max(float(iter), 1.0));                        // integer escape count, not
+    gray = escaped ? (0.5 + 0.5*sin(6.28318530718*ph)) : 1.0;            // the distance estimate -> the
+    pt = fract(ph); exterior_only = false;                                // bands are stepped (flat plateaus,
+  }                                                                       // hard edges) instead of smooth
 
   vec3 col;
   if(uTransform==0){
@@ -321,7 +326,7 @@ const betaEl=document.getElementById('beta'), betaVal=document.getElementById('b
 
 function updateBetaUI(){
   const t=state.transform;
-  const usesBeta = (t===1||t===2||t===4||t===5);
+  const usesBeta = (t===1||t===2||t===4||t===5||t===6);
   betaEl.disabled = !usesBeta;
   if(t===5){
     const S = state.beta*30.0;

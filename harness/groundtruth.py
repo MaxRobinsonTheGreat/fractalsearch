@@ -10,11 +10,19 @@ If you (the human) want to change what is being fit (e.g. raw iteration count vs
 smooth normalized vs. binary membership), this is the ONE place to do it. Do it
 deliberately and start a fresh run tag, because past results become incomparable.
 
-Target definition (current):
-    - escape-time iteration with a continuous (smooth) iteration count
-    - mapped through `smooth()` to (0, 1]; points in the set -> 1.0
-    - this matches the mandelbrotnn `smoothMandelbrot` framing, but uses the
-      *continuous* escape count so the target is smooth enough to fit well.
+Target definition (current): periodic log-distance.
+    - escape-time iteration with the orbit derivative z' = dz/dc tracked alongside z,
+      yielding a distance-to-set estimate  d = |z|·log|z| / |z'|  at the escape step.
+    - mapped to a bounded, scale-free, PERIODIC value in [0, 1]:
+          phase  = BETA · log(d)
+          target = 0.5 + 0.5·sin(2π·phase)     (escaped / exterior)
+          target = 1.0                          (never escaped / in-set)
+    - Unlike a monotonic smooth-iter target this never saturates and exposes fine
+      structure at every scale near the boundary (the band frequency -> inf as d -> 0).
+      That is deliberate: it captures more of the fractal's fine complexity and is
+      intentionally harder for the learner to fit.
+    - Matches the "Periodic · log-distance" transform in
+      dashboard/static/mandelbrot_lab.html (BETA = 0.050, R = 1e4 bailout).
 """
 
 import math
@@ -30,56 +38,71 @@ XMIN, XMAX = -2.65, 1.15
 YMIN, YMAX = -1.2, 1.2
 
 # --- Target parameters --------------------------------------------------------
-MAX_DEPTH = 100      # escape-time iteration cap (higher => sharper boundary detail)
-SMOOTHNESS = 50.0    # smoothMandelbrot smoothing constant
-ESCAPE_R = 2.0       # escape radius
+MAX_DEPTH = 200      # escape-time iteration cap (higher => sharper boundary detail)
+BETA = 0.050         # periodic log-distance frequency: phase = BETA * log(distance)
+ESCAPE_R = 1.0e4     # escape radius — large bailout => accurate distance estimate
+SMOOTHNESS = 50.0    # (legacy; unused by the periodic target, kept for smooth())
 
 _LOG2 = math.log(2.0)
+TWO_PI = 2.0 * math.pi
 
 
 def smooth(iters: torch.Tensor) -> torch.Tensor:
-    """Map an (continuous) escape-iteration count to (0, 1].
+    """Legacy monotonic smooth-iter squash, kept for reference / experimentation.
 
     1 - 1 / ((iters / SMOOTHNESS) + 1). Monotonic in iters; -> 1.0 as iters -> inf.
+    Not used by the current periodic log-distance target.
     """
     return 1.0 - 1.0 / (iters / SMOOTHNESS + 1.0)
 
 
 @torch.no_grad()
 def mandelbrot(coords: torch.Tensor, max_depth: int = MAX_DEPTH) -> torch.Tensor:
-    """Compute the target for a batch of points.
+    """Compute the periodic log-distance target for a batch of points.
+
+    Iterates z <- z^2 + c while tracking the derivative z' = dz/dc; at escape this gives
+    the distance-to-set estimate d = |z|*log|z| / |z'|, which is folded through
+    phase = BETA*log(d) and a sine into a bounded, scale-free, periodic value. See the
+    module docstring for the full definition.
 
     Args:
         coords: (N, 2) tensor of (real, imag). Any device/dtype; computed in float64.
         max_depth: escape-time iteration cap.
 
     Returns:
-        (N,) float32 tensor of target values in (0, 1]. In-set points -> 1.0.
+        (N,) float32 tensor of target values in [0, 1]. In-set points -> 1.0.
     """
     device = coords.device
     re = coords[:, 0].to(torch.float64)
     im = coords[:, 1].to(torch.float64)
     c = torch.complex(re, im)
     z = torch.zeros_like(c)
+    dz = torch.zeros_like(c)             # orbit derivative z' = dz/dc (z'_0 = 0)
 
-    nu = torch.zeros(c.shape[0], dtype=torch.float64, device=device)
+    z_esc = torch.zeros_like(c)          # z and z' captured at the escape iteration
+    dz_esc = torch.zeros_like(c)
     alive = torch.ones(c.shape[0], dtype=torch.bool, device=device)
 
     for n in range(max_depth):
+        # Derivative recurrence uses z BEFORE the z update: z'_{n+1} = 2*z_n*z'_n + 1.
+        dz = torch.where(alive, 2.0 * z * dz + 1.0, dz)
         z = torch.where(alive, z * z + c, z)
-        mag = z.abs()
-        escaped = alive & (mag > ESCAPE_R)
+        escaped = alive & (z.abs() > ESCAPE_R)
         if escaped.any():
-            # Continuous escape count: n + 1 - log2(log|z|/log2)
-            log_zn = torch.log(mag[escaped].clamp_min(1e-12))
-            cont = (n + 1) - torch.log2(log_zn / _LOG2)
-            nu[escaped] = cont.clamp_min(0.0)
+            z_esc[escaped] = z[escaped]
+            dz_esc[escaped] = dz[escaped]
         alive = alive & ~escaped
         if not alive.any():
             break
 
-    target = smooth(nu)
-    target[alive] = 1.0  # never escaped -> in the set
+    # Distance-to-set estimate at escape: d = |z|*log|z| / |z'|.
+    zmag = z_esc.abs()
+    dzmag = dz_esc.abs().clamp_min(1e-20)
+    dist = zmag * torch.log(zmag.clamp_min(1.0001)) / dzmag
+    # Periodic, scale-free encoding: phase = BETA*log(d), folded through a sine -> [0,1].
+    phase = BETA * torch.log(dist.clamp_min(1e-30))
+    target = 0.5 + 0.5 * torch.sin(TWO_PI * phase)
+    target[alive] = 1.0                  # never escaped -> in the set
     return target.to(torch.float32)
 
 

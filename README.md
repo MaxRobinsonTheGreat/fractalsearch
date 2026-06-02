@@ -35,10 +35,10 @@ AGENT.md            the autonomous research protocol the agent follows
 
 ## How it works
 
-- **Metric:** mean-squared error against the ground truth over a fixed 1000×1000 grid.
+- **Metric:** mean-squared error against the ground truth over a fixed grid.
   Lower is better — the single optimization target. (MAE, PSNR, and a boundary-weighted
   error are logged too, for insight.)
-- **Budget:** every run trains for a fixed **5 minutes** (hard-killed at 10). Compute is
+- **Budget:** every run trains for a fixed amount of time (defined in AGENT.md). Compute is
   free to use; a bigger model that scores better simply wins.
 - **Contract:** a solution implements `fit(ctx)` (train, using `ctx.sample()` for data and
   `ctx.expired()` to respect the budget) and `predict(coords) -> values`. Anything goes
