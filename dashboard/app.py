@@ -21,7 +21,6 @@ from fastapi.responses import FileResponse, HTMLResponse, Response, StreamingRes
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 RUNS_LOG = os.path.join(ROOT, "runs.jsonl")
 RUNS_DIR = os.path.join(ROOT, "runs")
-CACHE_DIR = os.path.join(ROOT, ".cache")
 STATIC = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
 
 app = FastAPI(title="fractalsearch")
@@ -150,6 +149,18 @@ def api_prediction(run_id: str):
 def api_error(run_id: str):
     """The run's |prediction - truth| heatmap (inferno), pixel-aligned to ground truth."""
     return _layer_response(run_id, "error")
+
+
+@app.get("/api/code/{run_id}")
+def api_code(run_id: str):
+    """Serve the solution source snapshot saved alongside the run (runs/<id>/<name>.py).
+    The evaluator copies the solution file into the run dir, so this is exactly the code
+    that produced the run — even if the original solutions/ file later changed."""
+    import glob
+    pys = sorted(glob.glob(os.path.join(RUNS_DIR, run_id, "*.py")))
+    if not pys:
+        raise HTTPException(404, "no solution snapshot for this run")
+    return FileResponse(pys[0], media_type="text/plain")
 
 
 @app.get("/api/groundtruth")

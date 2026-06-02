@@ -50,7 +50,6 @@ SEED = 1234
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 RUNS_DIR = os.path.join(ROOT, "runs")
 RUNS_LOG = os.path.join(ROOT, "runs.jsonl")
-CACHE_DIR = os.path.join(ROOT, ".cache")
 
 
 class _HardTimeout(Exception):
@@ -80,20 +79,13 @@ def load_solution(path: str) -> Solution:
 
 
 def eval_targets(device):
-    """Fixed ground-truth values on the dense eval grid (cached to disk)."""
-    os.makedirs(CACHE_DIR, exist_ok=True)
-    # Window bounds are part of the cache identity: change the view window and the
-    # targets change even at the same resolution, so they must not be reused.
-    win = f"{gt.XMIN},{gt.XMAX},{gt.YMIN},{gt.YMAX}"
-    key = f"eval_{EVAL_RESX}x{EVAL_RESY}_d{gt.MAX_DEPTH}_w{win}.pt"
-    cache = os.path.join(CACHE_DIR, key)
+    """Ground-truth values on the dense eval grid, computed fresh every run.
+
+    Intentionally NOT cached: the compute is cheap on GPU next to the 5-minute training
+    budget, and a live computation can never go stale when the target definition in
+    groundtruth.py (view window, smooth(), MAX_DEPTH, ...) changes."""
     coords = gt.make_grid(EVAL_RESX, EVAL_RESY, device=device)
-    if os.path.exists(cache):
-        targets = torch.load(cache, map_location=device)
-    else:
-        targets = gt.mandelbrot(coords)
-        torch.save(targets.cpu(), cache)
-        targets = targets.to(device)
+    targets = gt.mandelbrot(coords)
     return coords, targets
 
 
@@ -146,7 +138,7 @@ def save_artifacts(preds: torch.Tensor, targets: torch.Tensor, run_dir: str):
         err = np.abs(pred - truth)
         err = err / max(err.max(), 1e-8)
         Image.fromarray(cm.apply(pred, cm.VALUE_CMAP)).save(os.path.join(run_dir, "prediction.png"))
-        Image.fromarray(cm.apply(err, "inferno")).save(os.path.join(run_dir, "error.png"))
+        Image.fromarray(cm.apply(err, cm.ERROR_CMAP)).save(os.path.join(run_dir, "error.png"))
     except Exception as e:
         print(f"(artifact render skipped: {e})", flush=True)
 

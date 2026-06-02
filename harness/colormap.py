@@ -29,11 +29,16 @@ _MAPS = {
         (0.750, (0.988, 0.655, 0.067)), (0.875, (0.882, 0.310, 0.031)),
         (1.000, (0.478, 0.016, 0.012)),
     ],
+    "gist_heat": [  # black -> red -> orange -> white (matplotlib gist_heat)
+        (0.000, (0.000, 0.000, 0.000)), (0.250, (0.375, 0.000, 0.000)),
+        (0.500, (0.750, 0.000, 0.000)), (0.667, (1.000, 0.333, 0.000)),
+        (0.750, (1.000, 0.500, 0.000)), (1.000, (1.000, 1.000, 1.000)),
+    ],
 }
 
 # Defaults used across the project.
-VALUE_CMAP = "inferno"   # for target / prediction images
-ERROR_CMAP = "turbo"     # for the absolute-error heatmap (so it visually pops)
+VALUE_CMAP = "inferno"     # for target / prediction images
+ERROR_CMAP = "gist_heat"   # for the absolute-error heatmap (so it visually pops)
 
 
 def apply(gray: np.ndarray, name: str = VALUE_CMAP) -> np.ndarray:

@@ -27,7 +27,7 @@ You are that agent.
    - `harness/evaluate.py` — the runner + metric (read-only).
    - `solutions/baseline_mlp.py` — the template to copy.
 3. Establish the baseline first: `uv run python -m harness.evaluate solutions/baseline_mlp.py`.
-4. With human approval, start the dashboard found in `dashboard` so progress can be monitored. `uv run uvicorn dashboard.app:app --port 8000`
+4. With human approval, start the dashboard found in `dashboard` so progress can be monitored. `uv run uvicorn dashboard.app:app --port 8000` Do not shut it down unless asked.
 5. Await human approval before starting a research loop.
 
 ## What you CAN do
