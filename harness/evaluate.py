@@ -24,6 +24,7 @@ import importlib.util
 import json
 import math
 import os
+import shutil
 import signal
 import subprocess
 import sys
@@ -121,7 +122,13 @@ def git_commit() -> str:
 
 
 def save_preview(sol: Solution, run_dir: str, device):
-    """Render predicted fractal + ground truth + error heatmap as a single PNG."""
+    """Render the run's prediction and its abs-error heatmap as separate PNGs.
+
+    The three layers the dashboard compares (ground truth | prediction | abs error)
+    are kept as independent, pixel-aligned images so the UI can switch between them
+    while preserving zoom/pan. Ground truth is identical for every run, so it is NOT
+    saved per-run — the dashboard renders it once via /api/groundtruth. We still write
+    a combined preview.png strip for backwards-compatibility with older tooling."""
     try:
         from PIL import Image
         import numpy as np
@@ -132,10 +139,13 @@ def save_preview(sol: Solution, run_dir: str, device):
         err = np.abs(pred - truth)
         err = err / max(err.max(), 1e-8)
 
-        # [ ground truth | prediction | abs error ], heatmap-colored
-        strip = np.concatenate([cm.apply(truth, cm.VALUE_CMAP),
-                                cm.apply(pred, cm.VALUE_CMAP),
-                                cm.apply(err, cm.ERROR_CMAP)], axis=1)
+        pred_rgb = cm.apply(pred, cm.VALUE_CMAP)
+        err_rgb = cm.apply(err, "inferno")  # abs-error heatmap, inferno
+        Image.fromarray(pred_rgb).save(os.path.join(run_dir, "prediction.png"))
+        Image.fromarray(err_rgb).save(os.path.join(run_dir, "error.png"))
+
+        # Legacy combined strip [ ground truth | prediction | abs error ].
+        strip = np.concatenate([cm.apply(truth, cm.VALUE_CMAP), pred_rgb, err_rgb], axis=1)
         Image.fromarray(strip).save(os.path.join(run_dir, "preview.png"))
     except Exception as e:
         print(f"(preview render skipped: {e})", flush=True)
@@ -168,6 +178,17 @@ def main():
         "mse": None, "mae": None, "psnr": None, "boundary_mse": None,
     }
 
+    # Snapshot the solution source into the run dir. The trained .pt is intentionally
+    # NOT saved — these are small-scale experiments and a full-scale retrain happens
+    # outside this loop, so what's worth preserving (and committing) is the *recipe*,
+    # not the weights. The copy captures exactly what ran, even if the file later
+    # changes; it may lack imported deps, but it beats nothing for reproducing a result.
+    try:
+        shutil.copy2(os.path.abspath(args.solution),
+                     os.path.join(run_dir, os.path.basename(args.solution)))
+    except Exception as e:
+        print(f"(solution source copy skipped: {e})", flush=True)
+
     ctx = FitContext(device=device, time_budget_s=args.budget, seed=SEED)
     signal.signal(signal.SIGALRM, _alarm_handler)
     signal.alarm(int(HARD_KILL_S))
@@ -184,10 +205,6 @@ def main():
         record.update(score(preds, targets))
         record["status"] = "ok"
 
-        try:
-            sol.save(os.path.join(run_dir, "model.pt"))
-        except NotImplementedError:
-            pass
         save_preview(sol, run_dir, device)
 
     except _HardTimeout:

@@ -19,19 +19,16 @@ You are that agent.
 
 ## Setup (first time on a fresh run)
 
-1. Agree a run tag with the human (e.g. `may30`) and create a branch
-   `fractalsearch/<tag>` from main. The repo `fractalsearch/` is a git repo.
+1. Agree a run tag with the human and create a branch
+   `fractalsearch/<tag>` from master, or pickup from an existing branch.
 2. Read the in-scope files for full context:
    - `harness/groundtruth.py` — the target (read-only).
    - `harness/interface.py` — the `Solution` contract (read-only).
    - `harness/evaluate.py` — the runner + metric (read-only).
    - `solutions/baseline_mlp.py` — the template to copy.
 3. Establish the baseline first: `uv run python -m harness.evaluate solutions/baseline_mlp.py`.
-4. With human approval, start the dashboard found in `dashboard` so progress can be monitored.
-```
-# launch the control panel, then open http://localhost:8000
-uv run uvicorn dashboard.app:app --port 8000
-```
+4. With human approval, start the dashboard found in `dashboard` so progress can be monitored. `uv run uvicorn dashboard.app:app --port 8000`
+5. Await human approval before starting a research loop.
 
 ## What you CAN do
 
@@ -46,17 +43,14 @@ uv run uvicorn dashboard.app:app --port 8000
 
 ## What you CANNOT do
 
-- Modify anything under `harness/` — the target, the `Solution` interface, the evaluation
-  metric, the time budget. These are the ground truth and must not be gamed.
-- Hard-code the logic of the mandelbrot set into the solution itself. Remember the algorithm MUST still be
-  a universal function approximator, able to fit any dataset.
-- Add dependencies beyond `pyproject.toml` (torch, numpy, pillow are available).
+- Do not modify anything under `harness/` — the target, the `Solution` interface, the evaluation metric, the time budget. These are the ground truth and must not be gamed.
+- Do not hard-code the logic of the mandelbrot set into the solution itself. Remember the algorithm MUST still be a universal function approximator, able to fit any dataset.
+- Do not add dependencies beyond `pyproject.toml` (torch, numpy, pillow are available).
 
 ## The experiment loop — LOOP FOREVER
 
 1. Look at the git state and the current leaderboard (`runs.jsonl`, or the dashboard).
-2. Form a hypothesis. Create a new solution file (copy the closest prior winner) **or**
-   iterate on the current best file. Keep each file a single coherent idea.
+2. Form a hypothesis. Create a new solution file (copy the closest prior winner) **or** iterate on the current best file. Keep each file a single coherent idea.
 3. `git add -A && git commit -m "<idea>"`.
 4. Run it: `uv run python -m harness.evaluate solutions/<file>.py > run.log 2>&1`
    (redirect everything — do NOT flood your context).
@@ -65,13 +59,10 @@ uv run uvicorn dashboard.app:app --port 8000
 6. If `run.log` shows a crash, `tail -n 50 run.log` for the traceback. Fix obvious bugs
    (typo, shape mismatch) and re-run. If the idea is fundamentally broken, move on — the
    crash is already logged with status `crash`.
-7. **Keep vs. discard:** if MSE improved over the best so far, keep the commit and keep
-   iterating from it. If it's equal or worse, `git reset --hard` back to the prior good
-   commit (the solution file goes away; the run stays in `runs.jsonl` as a record).
-8. Repeat.
+7. Repeat.
 
 **Timeout:** a run should take ~5 minutes. If it exceeds 10 minutes the evaluator kills it
-and logs status `timeout`; treat that as a discard.
+and logs status `timeout`; treat that as a discard. You MUST enforce the timeout.
 
 **NEVER STOP.** Once the loop has begun, do not pause to ask the human whether to
 continue. They may be asleep and expect a stack of results when they return. If you run

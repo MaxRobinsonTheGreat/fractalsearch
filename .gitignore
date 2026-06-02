@@ -1,6 +1,10 @@
-# Experiment outputs (kept local, not version controlled)
-runs/
-runs.jsonl
+# Experiment progress IS version controlled so a clone can pick up where you left off:
+#   - runs.jsonl            the run history / leaderboard
+#   - runs/<id>/result.json that run's record
+#   - runs/<id>/*.py        a snapshot of the solution source that produced it
+# But the heavy, re-derivable artifacts stay local:
+runs/**/*.pt
+runs/**/*.png
 run.log
 
 # Cached ground-truth eval fixtures

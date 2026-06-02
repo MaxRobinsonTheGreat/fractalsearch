@@ -8,41 +8,68 @@
   :root { --bg:#0d1117; --panel:#161b22; --line:#30363d; --fg:#e6edf3; --mut:#8b949e;
           --accent:#58a6ff; --good:#3fb950; }
   * { box-sizing: border-box; }
-  body { margin:0; background:var(--bg); color:var(--fg);
+  html, body { height:100%; }
+  body { margin:0; background:var(--bg); color:var(--fg); display:flex; flex-direction:column;
          font:14px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; }
   header { padding:14px 20px; border-bottom:1px solid var(--line); display:flex;
-           align-items:baseline; gap:16px; }
+           align-items:baseline; gap:16px; flex:0 0 auto; }
   header h1 { font-size:16px; margin:0; letter-spacing:.5px; }
   header .stat { color:var(--mut); font-size:12px; }
   header .stat b { color:var(--fg); }
-  .wrap { display:grid; grid-template-columns: 1fr 1fr; gap:16px; padding:16px; }
+
+  /* Vertical-display layout: leaderboard (left) + selected solution (right) on top,
+     the progress graph spanning the full width underneath. */
+  .wrap { flex:1 1 auto; min-height:0; display:grid; gap:16px; padding:16px;
+          grid-template-columns: minmax(220px, 1fr) minmax(0, 1.6fr);
+          grid-template-rows: minmax(0, 1.7fr) minmax(180px, 1fr);
+          grid-template-areas: "board solution" "graph graph"; }
+  #panel-board { grid-area:board; } #panel-solution { grid-area:solution; }
+  #panel-graph { grid-area:graph; }
+
   .panel { background:var(--panel); border:1px solid var(--line); border-radius:8px;
-           padding:14px; }
+           padding:14px; display:flex; flex-direction:column; min-height:0; }
   .panel h2 { font-size:12px; text-transform:uppercase; letter-spacing:1px;
-              color:var(--mut); margin:0 0 10px; }
-  .full { grid-column: 1 / -1; }
+              color:var(--mut); margin:0 0 10px; flex:0 0 auto; }
+
+  /* Leaderboard: header pinned, body scrolls when it overflows the fixed height. */
+  .tablescroll { flex:1 1 auto; min-height:0; overflow-y:auto; }
   table { width:100%; border-collapse:collapse; font-size:12px; }
   th, td { text-align:left; padding:5px 8px; border-bottom:1px solid var(--line);
            white-space:nowrap; }
-  th { color:var(--mut); font-weight:600; }
+  th { color:var(--mut); font-weight:600; position:sticky; top:0; background:var(--panel); z-index:1; }
   tr.best td { color:var(--good); }
   tr.sel td { background:#1f2630; }
-  tr:hover td { background:#1c222b; cursor:pointer; }
+  tbody tr:hover td { background:#1c222b; cursor:pointer; }
   td.num { text-align:right; font-variant-numeric:tabular-nums; }
-  .pill { padding:1px 7px; border-radius:10px; font-size:11px; }
-  .ok{background:#1a3a24;color:var(--good);} .crash{background:#3a1a1a;color:#f85149;}
-  .timeout{background:#3a311a;color:#d29922;} .running{background:#1a2a3a;color:var(--accent);}
-  img.render { width:100%; image-rendering:pixelated; border:1px solid var(--line);
-               border-radius:4px; background:#000; }
-  .imglabels { display:flex; justify-content:space-around; color:var(--mut);
-               font-size:11px; margin-top:4px; }
-  canvas { width:100%; height:200px; display:block; }
+
+  /* Selected-solution image viewer with persistent zoom/pan. */
+  .seg { display:flex; gap:6px; margin-bottom:10px; flex:0 0 auto; }
+  .seg button { flex:1; padding:5px 8px; font:inherit; font-size:12px; cursor:pointer;
+                background:transparent; color:var(--mut); border:1px solid var(--line);
+                border-radius:6px; }
+  .seg button.on { color:var(--fg); border-color:var(--accent); background:#1a2433; }
+  .viewer { flex:1 1 auto; min-height:0; position:relative; overflow:hidden;
+            border:1px solid var(--line); border-radius:6px; background:#000;
+            cursor:grab; touch-action:none; user-select:none; -webkit-user-select:none; }
+  .viewer.drag { cursor:grabbing; }
+  .vp { position:absolute; top:0; left:0; transform-origin:0 0; will-change:transform; }
+  .vp img { position:absolute; top:0; left:0; width:100%; height:100%; display:block;
+            image-rendering:pixelated; opacity:0; transition:opacity .08s;
+            -webkit-user-drag:none; user-drag:none; pointer-events:none; }
+  .vp img.on { opacity:1; }
+  .stats { flex:0 0 auto; display:flex; flex-wrap:wrap; gap:4px 18px; margin-top:10px;
+           font-size:12px; }
+  .stats .kv { color:var(--mut); } .stats .kv b { color:var(--fg); font-weight:600; }
+
+  canvas { width:100%; flex:1 1 auto; min-height:0; display:block; }
   .muted { color:var(--mut); font-size:12px; }
-  .gt { max-width:260px; }
   .follow { margin-left:8px; font-size:11px; padding:2px 8px; border-radius:10px;
             border:1px solid var(--line); background:transparent; color:var(--mut);
             cursor:pointer; vertical-align:middle; }
   .follow.on { color:var(--good); border-color:var(--good); }
+  .pill { padding:1px 7px; border-radius:10px; font-size:11px; }
+  .ok{background:#1a3a24;color:var(--good);} .crash{background:#3a1a1a;color:#f85149;}
+  .timeout{background:#3a311a;color:#d29922;} .running{background:#1a2a3a;color:var(--accent);}
 </style>
 </head>
 <body>
@@ -55,40 +82,58 @@
 </header>
 
 <div class="wrap">
-  <div class="panel">
+  <div class="panel" id="panel-board">
     <h2>Leaderboard
       <span style="float:right; font-weight:400;">
-        <button id="sort-score" class="follow on" onclick="setSort('score')">lowest score</button>
+        <button id="sort-score" class="follow on" onclick="setSort('score')">lowest MSE</button>
         <button id="sort-latest" class="follow" onclick="setSort('latest')">latest</button>
       </span>
     </h2>
-    <table>
-      <thead><tr>
-        <th>run</th><th>name</th><th class="num">MSE</th><th class="num">MAE</th>
-        <th class="num">PSNR</th><th class="num">boundary</th><th class="num">train s</th>
-        <th>status</th>
-      </tr></thead>
-      <tbody id="rows"></tbody>
-    </table>
+    <div class="tablescroll">
+      <table>
+        <thead><tr><th>run</th><th>name</th><th class="num">MSE</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
   </div>
 
-  <div class="panel">
+  <div class="panel" id="panel-solution">
+    <h2>Selected solution <span id="sel-name" class="muted"></span>
+        <button id="follow-btn" class="follow on" onclick="toggleFollow()">▶ following latest</button></h2>
+    <div class="seg" id="seg">
+      <button data-layer="gt" class="on" onclick="setLayer('gt')">ground truth</button>
+      <button data-layer="pred" onclick="setLayer('pred')">prediction</button>
+      <button data-layer="err" onclick="setLayer('err')">abs error</button>
+    </div>
+    <div class="viewer" id="viewer">
+      <div class="vp" id="vp">
+        <img id="img-gt"  alt="ground truth" draggable="false"/>
+        <img id="img-pred" alt="prediction" draggable="false"/>
+        <img id="img-err"  alt="abs error" draggable="false"/>
+      </div>
+    </div>
+    <div class="stats" id="sel-stats"></div>
+  </div>
+
+  <div class="panel" id="panel-graph">
     <h2>Best-MSE over time</h2>
     <canvas id="chart" width="800" height="200"></canvas>
     <div class="muted" id="chart-note"></div>
-  </div>
-
-  <div class="panel full">
-    <h2>Selected solution <span id="sel-name" class="muted"></span>
-        <button id="follow-btn" class="follow on" onclick="toggleFollow()">▶ following latest</button></h2>
-    <img class="render" id="preview" alt="select a run"/>
-    <div class="imglabels"><span>ground truth</span><span>prediction</span><span>abs error</span></div>
-    <div class="muted" id="sel-desc"></div>
   </div>
 </div>
 
 <script>
 let selected = null, runs = [], follow = true, lastFrontier = [], sortMode = "score";
+let bestId = null, layer = "gt";
+// Intrinsic size of every preview layer (aspect_grid(512) -> 815x512). All three
+// layers share these dimensions, so the viewer transform is the same for each.
+const IMG_W = 815, IMG_H = 512;
+// Persistent absolute view transform, shared across every image and every run.
+// userAdjusted = the user has zoomed/panned, so stop auto-refitting on resize.
+const view = { scale: 1, tx: 0, ty: 0 };
+let userAdjusted = false;
+// Chart hover state + last-drawn geometry (set by drawChart) for hit-testing.
+let hoverIdx = null, chartGeo = null;
 
 function fmt(x, d=6){ return (x==null) ? "–" : Number(x).toFixed(d); }
 
@@ -112,7 +157,6 @@ function updateFollowBtn(){
   b.textContent = follow ? "▶ following latest" : "⏸ pinned — click to follow";
 }
 
-// Apply a fresh payload (from SSE or the initial fetch / polling fallback).
 function update(data){
   runs = data.runs;
   lastFrontier = data.frontier;
@@ -124,7 +168,6 @@ function update(data){
   const best = ok.length ? ok.reduce((a,b)=>a.mse<b.mse?a:b) : null;
   document.getElementById("s-best").textContent = best ? fmt(best.mse,6) : "–";
 
-  // Auto-follow the most recent experiment unless the user has pinned a run.
   if (follow && data.latest_run_id) selected = data.latest_run_id;
   else if (selected===null && best) selected = best.run_id;
 
@@ -134,10 +177,7 @@ function update(data){
   renderSelected();
 }
 
-let bestId = null;
-
 function renderRows(){
-  // "score": scored runs ascending by MSE (unscored last); "latest": newest-first by log order.
   const sorted = (sortMode==="latest")
     ? [...runs].reverse()
     : [...runs].sort((a,b)=>{
@@ -148,15 +188,11 @@ function renderRows(){
     const cls = [r.run_id===bestId?"best":"", r.run_id===selected?"sel":""].join(" ");
     return `<tr class="${cls}" onclick="select('${r.run_id}')">
       <td>${r.run_id}</td><td>${r.name||""}</td>
-      <td class="num">${fmt(r.mse,6)}</td><td class="num">${fmt(r.mae,4)}</td>
-      <td class="num">${fmt(r.psnr,1)}</td><td class="num">${fmt(r.boundary_mse,6)}</td>
-      <td class="num">${fmt(r.train_seconds,0)}</td>
-      <td><span class="pill ${r.status}">${r.status}</span></td></tr>`;
+      <td class="num">${fmt(r.mse,6)}</td></tr>`;
   }).join("");
   document.getElementById("rows").innerHTML = rows;
 }
 
-// Clicking a run pins it (stops following the latest experiment).
 function select(id){ selected = id; follow = false; updateFollowBtn();
   renderSelected(); markRows(); drawChart(lastFrontier); }
 
@@ -167,34 +203,114 @@ function markRows(){
   });
 }
 
+// --- image viewer -----------------------------------------------------------
+function setLayer(l){
+  layer = l;
+  document.querySelectorAll("#seg button").forEach(b =>
+    b.classList.toggle("on", b.dataset.layer===l));
+  ["gt","pred","err"].forEach(k =>
+    document.getElementById("img-"+k).classList.toggle("on", k===l));
+}
+
+function applyView(){
+  document.getElementById("vp").style.transform =
+    `translate(${view.tx}px, ${view.ty}px) scale(${view.scale})`;
+}
+// Scale that makes the whole image fit inside the frame (min of the two axes).
+function fitScale(){
+  const v = document.getElementById("viewer");
+  return Math.min(v.clientWidth / IMG_W, v.clientHeight / IMG_H) || 1;
+}
+// Fit the entire image in the frame and center it (letterboxed on the slack axis).
+function fitView(){
+  const v = document.getElementById("viewer");
+  const s = fitScale();
+  view.scale = s;
+  view.tx = (v.clientWidth  - IMG_W * s) / 2;
+  view.ty = (v.clientHeight - IMG_H * s) / 2;
+  applyView();
+}
+function resetView(){ userAdjusted = false; fitView(); }
+
+function setupViewer(){
+  const viewer = document.getElementById("viewer"), vp = document.getElementById("vp");
+  vp.style.width = IMG_W + "px"; vp.style.height = IMG_H + "px";
+  fitView();
+  // Re-fit on resize until the user takes manual control of zoom/pan.
+  new ResizeObserver(() => { if (!userAdjusted) fitView(); }).observe(viewer);
+
+  viewer.addEventListener("wheel", e => {
+    e.preventDefault();
+    const rect = viewer.getBoundingClientRect();
+    const cx = e.clientX - rect.left, cy = e.clientY - rect.top;
+    const factor = Math.exp(-e.deltaY * 0.0015);
+    const fit = fitScale();
+    const ns = Math.min(40 * fit, Math.max(fit, view.scale * factor));
+    if (ns <= fit * 1.001){ resetView(); return; }  // zoomed all the way out -> snap to fit
+    const k = ns / view.scale;
+    view.tx = cx - (cx - view.tx) * k;   // zoom about the cursor
+    view.ty = cy - (cy - view.ty) * k;
+    view.scale = ns; userAdjusted = true;
+    applyView();
+  }, { passive:false });
+
+  let dragging = false, px = 0, py = 0;
+  viewer.addEventListener("pointerdown", e => {
+    dragging = true; px = e.clientX; py = e.clientY; userAdjusted = true;
+    viewer.classList.add("drag"); viewer.setPointerCapture(e.pointerId);
+  });
+  viewer.addEventListener("pointermove", e => {
+    if (!dragging) return;
+    view.tx += e.clientX - px; view.ty += e.clientY - py;
+    px = e.clientX; py = e.clientY; applyView();
+  });
+  const end = () => { dragging = false; viewer.classList.remove("drag"); };
+  viewer.addEventListener("pointerup", end);
+  viewer.addEventListener("pointercancel", end);
+  viewer.addEventListener("dblclick", resetView);
+  viewer.addEventListener("dragstart", e => e.preventDefault());
+}
+
+// Ground truth is identical for every run -> load it exactly once.
+let gtLoaded = false;
 function renderSelected(){
   const r = runs.find(x=>x.run_id===selected);
-  const img = document.getElementById("preview");
-  if (!r){ img.removeAttribute("src"); return; }
-  img.src = "/api/preview/"+r.run_id+"?t="+Date.now();
-  document.getElementById("sel-name").textContent = r ? `· ${r.name} (${r.run_id})` : "";
-  document.getElementById("sel-desc").textContent = r.description || "";
+  if (!gtLoaded){ document.getElementById("img-gt").src = "/api/groundtruth?height=512";
+                  gtLoaded = true; }
+  const pred = document.getElementById("img-pred"), err = document.getElementById("img-err");
+  const stats = document.getElementById("sel-stats");
+  if (!r){ pred.removeAttribute("src"); err.removeAttribute("src");
+           stats.innerHTML = ""; document.getElementById("sel-name").textContent = ""; return; }
+  pred.src = "/api/prediction/"+r.run_id+"?t="+r.run_id;
+  err.src  = "/api/error/"+r.run_id+"?t="+r.run_id;
+  document.getElementById("sel-name").textContent = `· ${r.name||""} (${r.run_id})`;
+  const kv = (k,v)=>`<span class="kv">${k} <b>${v}</b></span>`;
+  stats.innerHTML =
+    kv("status", `<span class="pill ${r.status}">${r.status}</span>`) +
+    kv("MSE", fmt(r.mse,6)) + kv("MAE", fmt(r.mae,4)) +
+    kv("PSNR", fmt(r.psnr,1)) + kv("boundary", fmt(r.boundary_mse,6)) +
+    kv("train s", fmt(r.train_seconds,0));
 }
 
 function drawChart(frontier){
   const c = document.getElementById("chart"), ctx = c.getContext("2d");
-  // Match the backing store to the canvas's real on-screen size × devicePixelRatio
-  // so the plot is crisp and undistorted instead of a stretched 800×200 bitmap.
   const dpr = window.devicePixelRatio || 1;
   const rect = c.getBoundingClientRect();
   const W = Math.max(1, Math.round(rect.width)), H = Math.max(1, Math.round(rect.height));
   if (c.width !== W*dpr || c.height !== H*dpr){ c.width = W*dpr; c.height = H*dpr; }
-  ctx.setTransform(dpr,0,0,dpr,0,0);     // draw in CSS pixels
+  ctx.setTransform(dpr,0,0,dpr,0,0);
   ctx.clearRect(0,0,W,H);
 
   const pts = frontier.map((v,i)=>[i,v]).filter(p=>p[1]!=null);
   if (pts.length<1){ document.getElementById("chart-note").textContent="no scored runs yet"; return; }
   const ys=pts.map(p=>p[1]);
   const xmin=0, xmax=Math.max(1,frontier.length-1);
-  const ymin=Math.min(...ys), ymax=Math.max(...ys);
-  const pad=34;
+  const ymin=0, ymax=Math.max(...ys);   // baseline pinned to 0
+  const pad=44;
   const X=i=>pad+(i-xmin)/(xmax-xmin||1)*(W-2*pad);
   const Y=v=>H-pad-( (v-ymin)/((ymax-ymin)||1) )*(H-2*pad);
+  const firstIdx = frontier.findIndex(v=>v!=null);
+  chartGeo = {pad, W, H, xmin, xmax, firstIdx, X, Y};   // for hover hit-testing
   ctx.strokeStyle="#30363d"; ctx.lineWidth=1; ctx.beginPath();
   ctx.moveTo(pad,H-pad); ctx.lineTo(W-pad,H-pad); ctx.moveTo(pad,pad); ctx.lineTo(pad,H-pad);
   ctx.stroke();
@@ -202,25 +318,61 @@ function drawChart(frontier){
   pts.forEach((p,k)=>{ const x=X(p[0]),y=Y(p[1]); k?ctx.lineTo(x,y):ctx.moveTo(x,y); });
   ctx.stroke();
 
-  // Highlight the currently-selected run's position on the frontier line.
   const selIdx = runs.findIndex(r => r.run_id===selected);
   if (selIdx>=0 && frontier[selIdx]!=null){
     const x=X(selIdx), y=Y(frontier[selIdx]);
     ctx.strokeStyle="#30363d"; ctx.setLineDash([3,3]); ctx.lineWidth=1; ctx.beginPath();
-    ctx.moveTo(x,H-pad); ctx.lineTo(x,y); ctx.stroke(); ctx.setLineDash([]);  // dropline to axis
+    ctx.moveTo(x,H-pad); ctx.lineTo(x,y); ctx.stroke(); ctx.setLineDash([]);
     ctx.beginPath(); ctx.arc(x,y,4.5,0,2*Math.PI);
     ctx.fillStyle="#58a6ff"; ctx.fill();
-    ctx.lineWidth=2; ctx.strokeStyle="#0d1117"; ctx.stroke();  // halo so it reads on the line
+    ctx.lineWidth=2; ctx.strokeStyle="#0d1117"; ctx.stroke();
+  }
+
+  // Hover marker: dot on the frontier at the run nearest the cursor, plus its name.
+  if (hoverIdx!=null && frontier[hoverIdx]!=null){
+    const x=X(hoverIdx), y=Y(frontier[hoverIdx]), r=runs[hoverIdx];
+    ctx.beginPath(); ctx.arc(x,y,4,0,2*Math.PI);
+    ctx.fillStyle="#d29922"; ctx.fill();
+    ctx.lineWidth=2; ctx.strokeStyle="#0d1117"; ctx.stroke();
+    const label = `${r?(r.name||""):""} (${r?r.run_id:""})`;
+    ctx.font="11px monospace"; const tw=ctx.measureText(label).width;
+    let lx = x + 8; if (lx + tw > W-4) lx = x - 8 - tw;   // flip near the right edge
+    const ly = Math.max(pad+10, y - 8);
+    ctx.fillStyle="rgba(13,17,23,.85)"; ctx.fillRect(lx-3, ly-11, tw+6, 15);
+    ctx.fillStyle="#e6edf3"; ctx.fillText(label, lx, ly+1);
   }
 
   ctx.fillStyle="#8b949e"; ctx.font="10px monospace";
   ctx.fillText(ymax.toExponential(2), 4, pad);
-  ctx.fillText(ymin.toExponential(2), 4, H-pad+4);
+  ctx.fillText("0", 4, H-pad+4);
   document.getElementById("chart-note").textContent =
-    `best MSE ${ymin.toExponential(3)} over ${frontier.length} runs`;
+    `best MSE ${ymax===0?"–":Math.min(...ys).toExponential(3)} over ${frontier.length} runs`;
 }
 
-// Live updates via Server-Sent Events; fall back to polling if the stream drops.
+// Map a cursor x within the chart to the nearest run index that has a frontier value.
+function chartIndexAt(clientX){
+  const g = chartGeo; if (!g || g.firstIdx<0) return null;
+  const c = document.getElementById("chart");
+  const mx = clientX - c.getBoundingClientRect().left;
+  const frac = (mx - g.pad) / Math.max(1, g.W - 2*g.pad);
+  let idx = Math.round(g.xmin + frac * (g.xmax - g.xmin));
+  return Math.min(lastFrontier.length-1, Math.max(g.firstIdx, idx));
+}
+
+function setupChartHover(){
+  const c = document.getElementById("chart");
+  c.addEventListener("mousemove", e => {
+    const idx = chartIndexAt(e.clientX);
+    if (idx !== hoverIdx){ hoverIdx = idx; c.style.cursor = idx!=null?"pointer":"default";
+                           drawChart(lastFrontier); }
+  });
+  c.addEventListener("mouseleave", () => { hoverIdx=null; drawChart(lastFrontier); });
+  c.addEventListener("click", e => {
+    const idx = chartIndexAt(e.clientX);
+    if (idx!=null && runs[idx]) select(runs[idx].run_id);
+  });
+}
+
 let pollTimer = null;
 function startPolling(){
   if (pollTimer) return;
@@ -231,10 +383,13 @@ function startStream(){
   const es = new EventSource("/api/stream");
   es.onmessage = (e) => { if (pollTimer){ clearInterval(pollTimer); pollTimer=null; }
                           try { update(JSON.parse(e.data)); } catch(err){} };
-  es.onerror = () => { startPolling(); };   // browser auto-reconnects; poll meanwhile
+  es.onerror = () => { startPolling(); };
 }
 
 window.addEventListener("resize", () => drawChart(lastFrontier));
+setupViewer();
+setupChartHover();
+setLayer("gt");
 updateFollowBtn();
 startStream();
 </script>

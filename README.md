@@ -39,7 +39,7 @@ AGENT.md            the autonomous research protocol the agent follows
   free to use; a bigger model that scores better simply wins.
 - **Contract:** a solution implements `fit(ctx)` (train, using `ctx.sample()` for data and
   `ctx.expired()` to respect the budget) and `predict(coords) -> values`. Anything goes
-  inside — nets, Fourier/hash encodings, KANs, analytic forms, custom sampling.
+  inside, whatever works.
 
 ## Running
 
@@ -57,4 +57,4 @@ uv run uvicorn dashboard.app:app --port 8000
 ```
 
 For a quick experiment loop, see `AGENT.md` — point an agent at it and it will iterate
-autonomously, committing each idea and keeping only what lowers MSE.
+autonomously.

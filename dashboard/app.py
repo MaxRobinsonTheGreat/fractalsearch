@@ -110,11 +110,46 @@ async def api_stream():
 
 @app.get("/api/preview/{run_id}")
 def api_preview(run_id: str):
-    """Side-by-side strip: [ground truth | prediction | error] saved at eval time."""
+    """Legacy side-by-side strip: [ground truth | prediction | error]."""
     path = os.path.join(RUNS_DIR, run_id, "preview.png")
     if not os.path.exists(path):
         raise HTTPException(404, "no preview for this run")
     return FileResponse(path, media_type="image/png")
+
+
+def _layer_response(run_id: str, layer: str):
+    """Serve a single preview layer ('prediction' or 'error').
+
+    New runs save these as standalone PNGs. For older runs that only have the
+    combined preview.png strip [gt | pred | err], slice the requested third out
+    of it on the fly so the dashboard works for the whole history."""
+    direct = os.path.join(RUNS_DIR, run_id, f"{layer}.png")
+    if os.path.exists(direct):
+        return FileResponse(direct, media_type="image/png")
+    strip = os.path.join(RUNS_DIR, run_id, "preview.png")
+    if os.path.exists(strip):
+        from io import BytesIO
+        from PIL import Image
+        img = Image.open(strip)
+        third = img.width // 3
+        idx = {"prediction": 1, "error": 2}[layer]  # 0=gt, 1=pred, 2=err
+        crop = img.crop((idx * third, 0, (idx + 1) * third, img.height))
+        buf = BytesIO()
+        crop.save(buf, format="PNG")
+        return Response(buf.getvalue(), media_type="image/png")
+    raise HTTPException(404, f"no {layer} for this run")
+
+
+@app.get("/api/prediction/{run_id}")
+def api_prediction(run_id: str):
+    """The run's predicted fractal (inferno-colored), pixel-aligned to ground truth."""
+    return _layer_response(run_id, "prediction")
+
+
+@app.get("/api/error/{run_id}")
+def api_error(run_id: str):
+    """The run's |prediction - truth| heatmap (inferno), pixel-aligned to ground truth."""
+    return _layer_response(run_id, "error")
 
 
 @app.get("/api/groundtruth")
