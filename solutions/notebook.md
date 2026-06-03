@@ -86,6 +86,11 @@ Mining strength re-tuned at the bigger batch (768k) — the pool/batch interacti
 Robust pick: hashgrid_hard90 (4x pool, 90% hard) ~ pool6. Note: ~400-560 steps (pool-GT bound).
 - combo (batch 1M + 4x pool + 90% hard): 0.000336 — tied. Everything clusters at ~0.000336.
 
+## More confirmations (all ~floor or worse)
+- sigmoid output head: 0.000337 (tied; output activation irrelevant).
+- 2phase (cheap uniform 65% then mining 35%): 0.000366 worse — continuous mining beats
+  deferred mining; the easy phase doesn't build the boundary that late mining must refine.
+
 ## ============ FINAL: CONVERGED at MSE ~0.000336 (PSNR 34.74), 12.3x vs baseline ============
 54 experiments. Winning recipe = Instant-NGP hash grid (12 lvl, F=2, T=2^24, Nmin16/Nmax32768)
 + small GELU MLP 256x4, fresh-data adaptive hard-mining (4-6x uniform pool, 75-90% hard),

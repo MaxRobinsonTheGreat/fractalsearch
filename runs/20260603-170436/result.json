@@ -1,0 +1,15 @@
+{
+  "run_id": "20260603-170436",
+  "timestamp": 1780524277.0965135,
+  "solution": "solutions/hashgrid_2phase.py",
+  "name": "hashgrid_2phase",
+  "description": "champion (T=2^24, batch 524k, table LR 6e-1, Nmax=32768, batch 768k, 2-phase: cheap uniform 65% then heavy mining 35%) + warmup over the first 8% then cosine decay \u2014 stabilize the aggressive table LR early",
+  "commit": "4f2c90f",
+  "device": "NVIDIA GeForce RTX 3090 Ti",
+  "status": "ok",
+  "train_seconds": 300.3135121410014,
+  "mse": 0.00036570793599821627,
+  "mae": 0.00231576943770051,
+  "psnr": 34.36865615207929,
+  "boundary_mse": 0.00038505226257257164
+}
