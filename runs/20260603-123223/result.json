@@ -1,0 +1,15 @@
+{
+  "run_id": "20260603-123223",
+  "timestamp": 1780507947.7073257,
+  "solution": "solutions/hashgrid_compile.py",
+  "name": "hashgrid_compile",
+  "description": "hashgrid_lr config + torch.compile to fuse the memory-bound gather/interp/MLP kernels for higher step throughput (fixed shapes -> compiles once)",
+  "commit": "f4b8e5c",
+  "device": "NVIDIA GeForce RTX 3090 Ti",
+  "status": "ok",
+  "train_seconds": 300.03742847600006,
+  "mse": 0.00046480045421049,
+  "mae": 0.0027002233546227217,
+  "psnr": 33.32733456217956,
+  "boundary_mse": 0.0005022988189011812
+}

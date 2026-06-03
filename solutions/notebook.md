@@ -47,6 +47,16 @@ adaptive mining (3x pool, 75% hard + 25% uniform), time-based cosine LR 1e-2->1e
 - hashgrid_ens (K=2 averaged, half budget each): 0.000494 WORSE. Each member undertrained
   (~600 steps); bias dominates, averaging two weak models < one strong. No ensembling.
 
+- hashgrid_compile (torch.compile): 0.000465, ~1200 steps unchanged. Gather randomly
+  accesses 128MB tables >> 6MB L2 -> every lookup a DRAM read. Memory-bandwidth wall,
+  compile can't fuse it. ~1200 steps is a HARD ceiling for this architecture.
+
+## ERROR MAP (champion) — decisive
+All error is on the THIN BOUNDARY CURVE; interior+exterior ~perfect. Boundary is
+measure-zero, so uniform sampling lands too few points on it. -> densify sampling near
+the boundary by jittering "hard anchors" (model-error-driven, general). Cheaper per step
+AND far denser boundary coverage. This is the key lever, attacking the actual error.
+
 ## Throughput diagnosis
 - replay cut per-step GT from 786k->131k but steps only went 1200->1500. So GT is NOT
   the bottleneck — MODEL COMPUTE is (big mining-pool forward + 256x4 MLP fwd/bwd).
