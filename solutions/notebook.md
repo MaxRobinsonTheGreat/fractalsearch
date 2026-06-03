@@ -83,6 +83,12 @@ After Nmax=32768, the finer grid wants BIGGER batches (more fine-cell coverage/s
 batch 524k->0.000347, 768k->0.000341, 1M->0.000340 (marginal, ~560 steps). LR 8e-1 tied 6e-1.
 (n32b768 = 0.000341 is the robust pick; 1M barely better with far fewer steps.)
 
+## Throughput-vs-quality, final word
+- wloss (error-weighted loss on uniform batch, no pool, 1200 steps): 0.000373 worse. The
+  3x mining POOL's selectivity (hardest of 3x) beats weighting + 2x steps. Mining earns its GT.
+- fp32 (no autocast, 400 steps): 0.000357 worse. bf16 throughput > fp32 precision; the
+  interpolation precision is NOT the limiter. Keep bf16.
+
 ## Resolution ceiling + final state
 - Nmax=65536 + 14 levels: 0.00034077 — ties Nmax=32768 champion. Resolution ceiling
   ~32768-65536; finer gives nothing more (collisions/throughput).
