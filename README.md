@@ -1,4 +1,4 @@
-# fractalsearch 🌀
+# 🌀 fractalsearch 🌀
 
 Can AI Agents do AI research?
 
@@ -9,10 +9,10 @@ It is a low-dimensional curve-fitting problem, like fitting an image, but this i
 This has been a [pet project of mine](https://github.com/MaxRobinsonTheGreat/mandelbrotnn) for many years, and I've run many of my own experiments on it. Because it is so simple, easy to run, and not resource-intensive, it is perfect for this kind of autonomous AI research loop. 
 
 
-As the human overseer, you can edit the prompt file AGENT.MD to guide bot behavior, rather than writing any code directly. Spin up any AI agent, point it at AGENT.MD, talk with it for a bit, and let 'er rip.
+As the human overseer, you can edit the prompt file AGENT.MD to guide bot behavior, rather than writing any code directly. Spin up any AI agent, point it at AGENT.MD, talk with it for a bit, and let 'er rip. You can monitor performance through your webbrowser at `localhost:8000`.
 
 
-The idea and code is directly adapted form Karpathy's [autoresearch](https://github.com/karpathy/autoresearch). 
+This project is directly adapted form Karpathy's [autoresearch](https://github.com/karpathy/autoresearch). 
 All code was AI generated with claude (this is human written btw). 
 
 
@@ -49,11 +49,10 @@ AGENT.md            the autonomous research protocol the agent follows
 Canonical runtime is `uv` (Python 3.10, PyTorch CUDA), mirroring `autoresearch`.
 
 ```bash
-cd fractalsearch
 uv sync                                                   # set up the environment
 
 # evaluate a solution (trains 5 min, scores, logs to runs.jsonl)
-uv run python -m harness.evaluate solutions/fourier.py
+uv run python -m harness.evaluate solutions/test.py
 
 # launch the control panel, then open http://localhost:8000
 uv run uvicorn dashboard.app:app --port 8000

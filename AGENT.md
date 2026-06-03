@@ -41,7 +41,7 @@ You are that agent.
   with the form `predict(coords) -> values in [0,1]`.
 - Search the web for research or ideas, while being open to your own crazy ideas.
 - Temporarily accept higher loss or worse performance to allow for experimentation and avoid getting stuck in local minima.
-- Write notes in `solutions/notebook.md` to keep track of ideas and follow up on experiments.
+- Write notes in `solutions/notebook.md` to keep track of ideas and follow up on experiments. Use this instead of whatever built-in memory module you might have, as it can be reused by different agents in the future.
 
 ## What you CANNOT do
 
