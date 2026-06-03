@@ -1,0 +1,15 @@
+{
+  "run_id": "20260603-105309",
+  "timestamp": 1780501990.1951563,
+  "solution": "solutions/hashgrid_bank.py",
+  "name": "hashgrid_bank",
+  "description": "hash grid (24 lvl, F=2, T=2^21, Nmax=8192) + MLP 256x4, precomputed 32M-point data bank (no per-step ground-truth recompute)",
+  "commit": "f19602f",
+  "device": "NVIDIA GeForce RTX 3090 Ti",
+  "status": "ok",
+  "train_seconds": 300.00299628500034,
+  "mse": 0.00130062538664788,
+  "mae": 0.0039749895222485065,
+  "psnr": 28.858477733378948,
+  "boundary_mse": 0.0014155767858028412
+}
