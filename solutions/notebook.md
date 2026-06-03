@@ -78,6 +78,14 @@ AND far denser boundary coverage. This is the key lever, attacking the actual er
 - Practical floor ~0.00046 confirmed: residual = boundary aliasing + finite capacity, and
   uniform metric forbids over-focusing on the boundary.
 
+## SEARCH CONVERGED (~0.000459, psnr 33.4) — champion hashgrid_l12
+~9x better than baseline. Step cap (~1400) is GT-bound; fresh data is required (banks
+overfit) so GT can't be cheapened -> cap is fundamental. Untried low-prob ideas if
+resuming: LayerNorm-then-1-sine-layer decode; batch 524k; tuned MFN/Gabor net.
+- hashgrid_l12p2 (2x pool): 0.000473 worse — 3x mining pool optimal even when GT-bound.
+- hashgrid_xy (concat raw coord): 0.000459 neutral.
+- hashgrid_l16F4 (F=4): 0.000468 worse.
+
 ## Throughput diagnosis
 - replay cut per-step GT from 786k->131k but steps only went 1200->1500. So GT is NOT
   the bottleneck — MODEL COMPUTE is (big mining-pool forward + 256x4 MLP fwd/bwd).
