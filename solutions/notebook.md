@@ -26,6 +26,13 @@ Don't replace this text. Below, write your current notes for ideas and research 
   the bottleneck — MODEL COMPUTE is (big mining-pool forward + 256x4 MLP fwd/bwd).
   -> to get more steps: mixed precision (AMP/fp16 tensor cores), smaller pool, or torch.compile.
 - mining (best) beats no-mining (v2) even at fewer steps: 0.00049 vs 0.00055.
+- hashgrid_amp (bf16 autocast): 0.00047836 psnr33.20. Marginal — grid GATHER is memory-
+  bandwidth-bound, bf16 only speeds matmuls. Throughput ~unchanged (~1200 steps).
+- hashgrid_ema (EMA decay 0.997): 0.00089834 WORSE. Weight-averaging is DESTRUCTIVE for a
+  high-freq grid fit — averaging table entries blurs fine oscillations. Don't use EMA here.
+- Current best 0.00047836 (hashgrid_amp). Model still improving at time limit -> MORE STEPS
+  is the clearest path. Next: cheaper mining (2x pool), bigger capacity, or MFN/Gabor MLP
+  (compute-bound -> AMP would actually help + more steps).
 
 ## Findings
 - Hash grid >> Fourier >> MLP. Capacity helps (v1->v2). Adaptive sampling: small win.
