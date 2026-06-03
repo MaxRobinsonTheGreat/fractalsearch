@@ -1,0 +1,15 @@
+{
+  "run_id": "20260603-121859",
+  "timestamp": 1780507140.1176176,
+  "solution": "solutions/hashgrid_siren.py",
+  "name": "hashgrid_siren",
+  "description": "hash grid (24 lvl, F=2, T=2^23, Nmax=8192) + SIREN sine-activated decoder 256x4 (omega0=30), adaptive mining + split LRs (table 5e-2 / MLP 5e-3)",
+  "commit": "5de5415",
+  "device": "NVIDIA GeForce RTX 3090 Ti",
+  "status": "ok",
+  "train_seconds": 300.11049238300075,
+  "mse": 0.08405090123414993,
+  "mae": 0.22467920184135437,
+  "psnr": 10.754576254854285,
+  "boundary_mse": 0.03503936529159546
+}

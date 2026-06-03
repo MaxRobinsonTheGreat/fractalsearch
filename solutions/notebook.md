@@ -38,6 +38,12 @@ adaptive mining (3x pool, 75% hard + 25% uniform), time-based cosine LR 1e-2->1e
 - hashgrid_lr (split table LR 5e-2 / MLP LR 5e-3): 0.00046177 ** best. Marginal win.
 - hashgrid_dec (decoder 512x3): 0.000465. Decoder not the bottleneck; 256x4 fine.
 
+- hashgrid_siren (sine decoder omega0=30): 0.084 FAILED. Grid features ~1e-4 -> sin(30*tiny)
+  ~0, dead gradients. SIREN+grid needs careful scaling; not worth chasing.
+- Eval grid is 3840 wide; Nmax=8192 already gives sub-eval-pixel cells -> raising Nmax is
+  pointless (detail finer than eval is invisible). The limit is table-entry training
+  coverage (mining) + finite steps + irreducible boundary aliasing. Floor ~0.00046.
+
 ## Throughput diagnosis
 - replay cut per-step GT from 786k->131k but steps only went 1200->1500. So GT is NOT
   the bottleneck — MODEL COMPUTE is (big mining-pool forward + 256x4 MLP fwd/bwd).
