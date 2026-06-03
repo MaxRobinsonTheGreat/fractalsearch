@@ -57,6 +57,13 @@ measure-zero, so uniform sampling lands too few points on it. -> densify samplin
 the boundary by jittering "hard anchors" (model-error-driven, general). Cheaper per step
 AND far denser boundary coverage. This is the key lever, attacking the actual error.
 
+- hashgrid_densify (jitter hard anchors, 1800 steps): 0.000505 WORSE. KEY LESSON: eval is
+  UNIFORM MSE. Oversampling the measure-zero boundary creates train/eval mismatch — fits
+  boundary but easy-area weight dominates uniform MSE and punishes any drift. Don't
+  over-focus; mining from a UNIFORM pool (lr) is near the optimal allocation.
+- Practical floor ~0.00046 confirmed: residual = boundary aliasing + finite capacity, and
+  uniform metric forbids over-focusing on the boundary.
+
 ## Throughput diagnosis
 - replay cut per-step GT from 786k->131k but steps only went 1200->1500. So GT is NOT
   the bottleneck — MODEL COMPUTE is (big mining-pool forward + 256x4 MLP fwd/bwd).
