@@ -16,6 +16,9 @@ Don't replace this text. Below, write your current notes for ideas and research 
 - hashgrid_v2 (24 lvl, T=2^21, Nmax=8192):    0.00054886  (psnr 32.61)
 - hashgrid_adaptive (v2 + err-weighted samp): 0.00051100  (psnr 32.92)  ** best
 - hashgrid_bank (v2 + 32M fixed bank):        0.00130063  (psnr 28.86)  OVERFIT
+- hashgrid_F4 (v2 + F=4 features):            0.00057509  (psnr 32.40)  worse (slower)
+- hashgrid_bigT (v2 + T=2^23):                0.00553924  (psnr 22.57)  BAD (too sparse)
+- hashgrid_best (v2 + adaptive + time-LR):    0.00048605  (psnr 33.13)  ** best
 
 ## Findings
 - Hash grid >> Fourier >> MLP. Capacity helps (v1->v2). Adaptive sampling: small win.
