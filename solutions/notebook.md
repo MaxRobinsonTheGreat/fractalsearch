@@ -21,7 +21,15 @@ Don't replace this text. Below, write your current notes for ideas and research 
 - hashgrid_best (v2 + adaptive + time-LR):    0.00048605  (psnr 33.13)  ** best
 - hashgrid_replay (8M churn bank + bank-mine): 0.00065260  (psnr 31.85)  worse (staleness)
 
-## Best config (hashgrid_bigT2 = 0.00046660, psnr 33.31)
+## CHAMPION: hashgrid_lr = 0.00046177 (psnr 33.36). 9x better than baseline (0.00413).
+Robust/reproducible (mine50 variant gave identical 0.00046177). Deterministic harness.
+
+## Champion config detail
+24 levels, F=2, T=2^23, Nmin=16 Nmax=8192, MLP 256x4 GELU, bf16 autocast, adaptive mining
+(3x uniform pool, 75% hard + 25% uniform), split LRs (table 5e-2 / MLP 5e-3) cosine-decayed
+over the time budget. ~1200 steps (memory-bandwidth capped).
+
+## (earlier best config note) hashgrid_bigT2 = 0.00046660, psnr 33.31
 24 levels, F=2, T=2^23, Nmin=16 Nmax=8192, MLP 256x4 GELU, bf16 autocast,
 adaptive mining (3x pool, 75% hard + 25% uniform), time-based cosine LR 1e-2->1e-4.
 
