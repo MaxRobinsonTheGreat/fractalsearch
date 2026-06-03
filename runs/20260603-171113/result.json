@@ -1,0 +1,15 @@
+{
+  "run_id": "20260603-171113",
+  "timestamp": 1780524675.0013807,
+  "solution": "solutions/champion.py",
+  "name": "champion",
+  "description": "champion (T=2^24, batch 524k, table LR 6e-1, Nmax=32768, batch 768k, 6x pool) + warmup over the first 8% then cosine decay \u2014 stabilize the aggressive table LR early",
+  "commit": "75b5548",
+  "device": "NVIDIA GeForce RTX 3090 Ti",
+  "status": "ok",
+  "train_seconds": 300.54052245099956,
+  "mse": 0.0003356474335305393,
+  "mae": 0.002723181154578924,
+  "psnr": 34.74116669223247,
+  "boundary_mse": 0.000349874870153144
+}

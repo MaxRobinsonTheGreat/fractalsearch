@@ -91,6 +91,12 @@ Robust pick: hashgrid_hard90 (4x pool, 90% hard) ~ pool6. Note: ~400-560 steps (
 - 2phase (cheap uniform 65% then mining 35%): 0.000366 worse — continuous mining beats
   deferred mining; the easy phase doesn't build the boundary that late mining must refine.
 
+## VALIDATED: champion.py re-run = 0.00033565 (matches pool6 0.00033559 within CUDA noise).
+Result is reproducible & stable. Canonical file: solutions/champion.py.
+Why mining strength > steps (the convergence proof): wloss=1200 cheap steps -> 0.000373;
+pool6=~400 steps strong mining -> 0.000336. More steps don't help; representation/boundary
+is the limit. Hence the floor is real, not a throughput artifact.
+
 ## ============ FINAL: CONVERGED at MSE ~0.000336 (PSNR 34.74), 12.3x vs baseline ============
 54 experiments. Winning recipe = Instant-NGP hash grid (12 lvl, F=2, T=2^24, Nmin16/Nmax32768)
 + small GELU MLP 256x4, fresh-data adaptive hard-mining (4-6x uniform pool, 75-90% hard),
