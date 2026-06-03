@@ -78,7 +78,14 @@ AND far denser boundary coverage. This is the key lever, attacking the actual er
 - Practical floor ~0.00046 confirmed: residual = boundary aliasing + finite capacity, and
   uniform metric forbids over-focusing on the boundary.
 
-## *** CHAMPION: hashgrid_n32b1m = 0.00034029 (psnr 34.68). ~12.1x better than baseline. ***
+## *** CHAMPION: hashgrid_pool6 = 0.00033559 (psnr 34.74). ~12.3x better than baseline. ***
+Mining strength re-tuned at the bigger batch (768k) — the pool/batch interaction reopened it:
+- pool_mult 3x->4x->6x at batch 768k: 0.000341->0.000337->0.000336. Bigger ABSOLUTE pool
+  finds harder boundary points (stronger mining). Saturates ~4-6x (pool GT cost caps steps).
+- n_hard 75%->90% at 4x pool: 0.000337->0.000336 (ties pool6, cheaper). Both ~0.000336.
+Robust pick: hashgrid_hard90 (4x pool, 90% hard) ~ pool6. Note: ~400-560 steps (pool-GT bound).
+
+## (prior) hashgrid_n32b1m = 0.00034029 (psnr 34.68)
 After Nmax=32768, the finer grid wants BIGGER batches (more fine-cell coverage/step):
 batch 524k->0.000347, 768k->0.000341, 1M->0.000340 (marginal, ~560 steps). LR 8e-1 tied 6e-1.
 (n32b768 = 0.000341 is the robust pick; 1M barely better with far fewer steps.)
