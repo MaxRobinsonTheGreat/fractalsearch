@@ -1,0 +1,15 @@
+{
+  "run_id": "20260603-150322",
+  "timestamp": 1780517003.8565822,
+  "solution": "solutions/hashgrid_n32l16.py",
+  "name": "hashgrid_n32l16",
+  "description": "champion (T=2^24, batch 524k, table LR 6e-1, Nmax=32768, 16 levels) + warmup over the first 8% then cosine decay \u2014 stabilize the aggressive table LR early",
+  "commit": "7d0cc59",
+  "device": "NVIDIA GeForce RTX 3090 Ti",
+  "status": "ok",
+  "train_seconds": 300.0814963030025,
+  "mse": 0.00034679248346947134,
+  "mae": 0.002300337888300419,
+  "psnr": 34.599303241805686,
+  "boundary_mse": 0.0003624885284807533
+}
