@@ -78,7 +78,11 @@ AND far denser boundary coverage. This is the key lever, attacking the actual er
 - Practical floor ~0.00046 confirmed: residual = boundary aliasing + finite capacity, and
   uniform metric forbids over-focusing on the boundary.
 
-## NEW CHAMPION: hashgrid_bb_lr4 = 0.00043821 (psnr 33.58)
+## NEW CHAMPION: hashgrid_T24 = 0.00043693 (psnr 33.60). T=2^24 (high LR trains it). ~9.5x.
+- replay2 (32M churn bank, champion regime): 0.000492 worse — mining-pool forward still
+  dominates (cheaper GT didn't add steps) + bank staleness. Fresh sampling wins, final word.
+
+## prior champion: hashgrid_bb_lr4 = 0.00043821 (psnr 33.58)
 BIG-BATCH + HIGH-LR was the breakthrough past the "converged" 0.000459 plateau:
 - batch 262k->524k: 0.000459->0.000453 (better gather utilization + lower-variance grads).
   768k/1M tied-or-worse (too few steps). 524k optimal.

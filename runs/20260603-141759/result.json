@@ -1,0 +1,15 @@
+{
+  "run_id": "20260603-141759",
+  "timestamp": 1780514280.4001532,
+  "solution": "solutions/hashgrid_T24.py",
+  "name": "hashgrid_T24",
+  "description": "hash grid (24 lvl, F=2, T=2^23, Nmax=8192) + MLP 256x4, adaptive mining + batch 524k + table LR 4e-1 + T=2^24",
+  "commit": "fb53f9f",
+  "device": "NVIDIA GeForce RTX 3090 Ti",
+  "status": "ok",
+  "train_seconds": 300.2214282189998,
+  "mse": 0.00043692762847058475,
+  "mae": 0.0025245603173971176,
+  "psnr": 33.5959049245467,
+  "boundary_mse": 0.00046838531852699816
+}
