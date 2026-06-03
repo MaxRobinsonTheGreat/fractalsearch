@@ -19,6 +19,13 @@ Don't replace this text. Below, write your current notes for ideas and research 
 - hashgrid_F4 (v2 + F=4 features):            0.00057509  (psnr 32.40)  worse (slower)
 - hashgrid_bigT (v2 + T=2^23):                0.00553924  (psnr 22.57)  BAD (too sparse)
 - hashgrid_best (v2 + adaptive + time-LR):    0.00048605  (psnr 33.13)  ** best
+- hashgrid_replay (8M churn bank + bank-mine): 0.00065260  (psnr 31.85)  worse (staleness)
+
+## Throughput diagnosis
+- replay cut per-step GT from 786k->131k but steps only went 1200->1500. So GT is NOT
+  the bottleneck — MODEL COMPUTE is (big mining-pool forward + 256x4 MLP fwd/bwd).
+  -> to get more steps: mixed precision (AMP/fp16 tensor cores), smaller pool, or torch.compile.
+- mining (best) beats no-mining (v2) even at fewer steps: 0.00049 vs 0.00055.
 
 ## Findings
 - Hash grid >> Fourier >> MLP. Capacity helps (v1->v2). Adaptive sampling: small win.
