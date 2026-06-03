@@ -78,7 +78,15 @@ AND far denser boundary coverage. This is the key lever, attacking the actual er
 - Practical floor ~0.00046 confirmed: residual = boundary aliasing + finite capacity, and
   uniform metric forbids over-focusing on the boundary.
 
-## NEW CHAMPION: hashgrid_T24 = 0.00043693 (psnr 33.60). T=2^24 (high LR trains it). ~9.5x.
+## CHAMPION: hashgrid_warmup6 = 0.00043186 (psnr 33.65). ~9.6x better than baseline.
+Config: 12 lvl, F=2, T=2^24, Nmax=8192, MLP 256x4, batch 524k, table LR 6e-1 + MLP LR
+5e-3, 8% linear warmup then cosine, bf16, 3x mining pool 75% hard. ~800 steps.
+- T=2^24: 0.000437 (slightly > 2^23 0.000438, high LR trains the bigger table).
+- 8% LR warmup: 0.000433 (helps stabilize the aggressive table LR early).
+- peak table LR 6e-1 (with warmup): 0.000432, marginal over 4e-1. LR near ceiling.
+- Remaining diffs are ~1e-6 (noise). Effective optimum for this architecture/budget.
+
+## (intermediate) hashgrid_T24 = 0.00043693 (psnr 33.60)
 - replay2 (32M churn bank, champion regime): 0.000492 worse — mining-pool forward still
   dominates (cheaper GT didn't add steps) + bank staleness. Fresh sampling wins, final word.
 
