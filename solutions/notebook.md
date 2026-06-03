@@ -83,6 +83,14 @@ After Nmax=32768, the finer grid wants BIGGER batches (more fine-cell coverage/s
 batch 524k->0.000347, 768k->0.000341, 1M->0.000340 (marginal, ~560 steps). LR 8e-1 tied 6e-1.
 (n32b768 = 0.000341 is the robust pick; 1M barely better with far fewer steps.)
 
+## Resolution ceiling + final state
+- Nmax=65536 + 14 levels: 0.00034077 — ties Nmax=32768 champion. Resolution ceiling
+  ~32768-65536; finer gives nothing more (collisions/throughput).
+- Error map at 0.00034: still the thin boundary filament but MUCH fainter than at 0.00046.
+  Residual = near-irreducible high-freq boundary + throughput-bound step count (~600).
+- CONVERGED at ~0.000340 (psnr 34.68), 12.1x vs baseline. Canonical champion:
+  hashgrid_n32b1m (0.00034029) or robust hashgrid_n32b768 (0.00034129) / n64l14 (0.00034077).
+
 ## Re-tuning around Nmax=32768 champion (all confirm robustness)
 - F=4: 0.000363 worse. MLP 256x6: 0.000347 worse. Nmin=64: 0.000343 worse. 2x pool: 0.000351
   worse (3x mining still best). 16 levels: flat. -> 12 lvl/F2/256x4/Nmin16/3xpool all optimal.

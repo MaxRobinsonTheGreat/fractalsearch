@@ -1,0 +1,15 @@
+{
+  "run_id": "20260603-155415",
+  "timestamp": 1780520056.4173305,
+  "solution": "solutions/hashgrid_n64l14.py",
+  "name": "hashgrid_n64l14",
+  "description": "champion (T=2^24, batch 524k, table LR 6e-1, Nmax=65536, 14 levels, batch 768k) + warmup over the first 8% then cosine decay \u2014 stabilize the aggressive table LR early",
+  "commit": "ee5cacc",
+  "device": "NVIDIA GeForce RTX 3090 Ti",
+  "status": "ok",
+  "train_seconds": 300.1908274480011,
+  "mse": 0.00034077127929776907,
+  "mae": 0.0024370388127863407,
+  "psnr": 34.675370153375916,
+  "boundary_mse": 0.00035664343158714473
+}
