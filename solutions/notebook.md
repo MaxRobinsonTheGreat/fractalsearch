@@ -89,6 +89,17 @@ batch 524k->0.000347, 768k->0.000341, 1M->0.000340 (marginal, ~560 steps). LR 8e
 - fp32 (no autocast, 400 steps): 0.000357 worse. bf16 throughput > fp32 precision; the
   interpolation precision is NOT the limiter. Keep bf16.
 
+## SIREN decoder, properly scaled (final architecture test)
+- siren2 (LayerNorm grid features + sine decoder omega0=10): 0.000449 worse. Trains fine now
+  (LayerNorm fixed the dead-gradient scaling) but sine decode loses to GELU; grid features
+  already encode local structure, LayerNorm discards useful magnitude. GELU decoder optimal.
+
+## Pattern across ~48 experiments
+WINS were compute-EFFICIENCY (big batch, bf16, mining-from-pool, high LR+warmup) and
+RESOLUTION (Nmax=32768). LOSSES were every "more compute/step" idea (fp32, 2x→3x is fine but
+bigger pools, Sobolev-style, replay) — we are THROUGHPUT-BOUND (~600 steps), steps are
+precious. And every over-capacity (F4, T25, 256x6, 16 lvl) or over-focus (densify) idea.
+
 ## Resolution ceiling + final state
 - Nmax=65536 + 14 levels: 0.00034077 — ties Nmax=32768 champion. Resolution ceiling
   ~32768-65536; finer gives nothing more (collisions/throughput).

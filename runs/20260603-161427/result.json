@@ -1,0 +1,15 @@
+{
+  "run_id": "20260603-161427",
+  "timestamp": 1780521268.949984,
+  "solution": "solutions/hashgrid_siren2.py",
+  "name": "hashgrid_siren2",
+  "description": "champion grid (T=2^24, Nmax=32768, batch 768k) + LayerNorm + SIREN sine-activated decoder (omega0=10) \u2014 periodic-native decode",
+  "commit": "5219983",
+  "device": "NVIDIA GeForce RTX 3090 Ti",
+  "status": "ok",
+  "train_seconds": 300.0272503530032,
+  "mse": 0.0004489314160309732,
+  "mae": 0.005949476733803749,
+  "psnr": 33.478200017903944,
+  "boundary_mse": 0.0004791467799805105
+}
