@@ -1,0 +1,15 @@
+{
+  "run_id": "20260603-160143",
+  "timestamp": 1780520504.2088513,
+  "solution": "solutions/hashgrid_wloss.py",
+  "name": "hashgrid_wloss",
+  "description": "champion grid (T=2^24, Nmax=32768, batch 768k) + ERROR-WEIGHTED LOSS instead of a mining pool: GT only on trained points (3x less GT -> more steps)",
+  "commit": "3508f30",
+  "device": "NVIDIA GeForce RTX 3090 Ti",
+  "status": "ok",
+  "train_seconds": 300.10450984600175,
+  "mse": 0.0003726619470398873,
+  "mae": 0.00237593287602067,
+  "psnr": 34.286849513146414,
+  "boundary_mse": 0.00039337482303380966
+}
