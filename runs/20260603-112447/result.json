@@ -1,0 +1,15 @@
+{
+  "run_id": "20260603-112447",
+  "timestamp": 1780503887.9564736,
+  "solution": "solutions/hashgrid_amp.py",
+  "name": "hashgrid_amp",
+  "description": "hash grid (24 lvl, F=2, T=2^21, Nmax=8192) + MLP 256x4, adaptive mining + time-LR, MIXED PRECISION (bf16 autocast) for throughput",
+  "commit": "bbd9843",
+  "device": "NVIDIA GeForce RTX 3090 Ti",
+  "status": "ok",
+  "train_seconds": 300.0272582590005,
+  "mse": 0.00047836449812166393,
+  "mae": 0.0027652597054839134,
+  "psnr": 33.202410590405044,
+  "boundary_mse": 0.0005175549304112792
+}
