@@ -1,0 +1,15 @@
+{
+  "run_id": "20260603-144113",
+  "timestamp": 1780515673.8665044,
+  "solution": "solutions/hashgrid_w6T23.py",
+  "name": "hashgrid_w6T23",
+  "description": "champion (T=2^23, batch 524k, table LR 6e-1) + linear LR warmup over the first 8% then cosine decay \u2014 stabilize the aggressive table LR early",
+  "commit": "13ed92f",
+  "device": "NVIDIA GeForce RTX 3090 Ti",
+  "status": "ok",
+  "train_seconds": 300.1057672989991,
+  "mse": 0.0004358287842478603,
+  "mae": 0.0024883856531232595,
+  "psnr": 33.60684090227454,
+  "boundary_mse": 0.0004668634501285851
+}
