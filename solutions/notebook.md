@@ -78,7 +78,17 @@ AND far denser boundary coverage. This is the key lever, attacking the actual er
 - Practical floor ~0.00046 confirmed: residual = boundary aliasing + finite capacity, and
   uniform metric forbids over-focusing on the boundary.
 
-## CHAMPION: hashgrid_warmup6 = 0.00043186 (psnr 33.65). ~9.6x better than baseline.
+## *** CHAMPION: hashgrid_nmax32k = 0.00034667 (psnr 34.60). ~11.9x better than baseline. ***
+BREAKTHROUGH: raising Nmax (finest grid resolution) FAR past eval resolution helps a lot.
+EARLIER CLAIM "Nmax>eval is useless" WAS WRONG — the target is POINT-sampled, so finer
+cells give the grid more DOF to fit each near-boundary eval point (adjacent eval pixels sit
+on different fine bands).
+- Nmax: 8192->0.000432, 16384->0.000363, 32768->0.000347 BEST, 65536->0.000347 (flat).
+- at Nmax=32768: 16 levels->flat, T=2^25->0.000352 (worse, 2^24 collision-reg is best).
+Champion config: 12 lvl, F=2, T=2^24, Nmin=16 Nmax=32768, MLP 256x4, batch 524k,
+table LR 6e-1 + MLP 5e-3, 8% warmup+cosine, bf16, 3x mining pool 75% hard. ~800 steps.
+
+## (superseded) hashgrid_warmup6 = 0.00043186 (psnr 33.65)
 Config: 12 lvl, F=2, T=2^24, Nmax=8192, MLP 256x4, batch 524k, table LR 6e-1 + MLP LR
 5e-3, 8% linear warmup then cosine, bf16, 3x mining pool 75% hard. ~800 steps.
 - T=2^24: 0.000437 (slightly > 2^23 0.000438, high LR trains the bigger table).
