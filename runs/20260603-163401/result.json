@@ -1,0 +1,15 @@
+{
+  "run_id": "20260603-163401",
+  "timestamp": 1780522442.7065916,
+  "solution": "solutions/hashgrid_pool4.py",
+  "name": "hashgrid_pool4",
+  "description": "champion (T=2^24, batch 524k, table LR 6e-1, Nmax=32768, batch 768k, 4x pool) + warmup over the first 8% then cosine decay \u2014 stabilize the aggressive table LR early",
+  "commit": "7e6c397",
+  "device": "NVIDIA GeForce RTX 3090 Ti",
+  "status": "ok",
+  "train_seconds": 300.3802577880015,
+  "mse": 0.0003365974989719689,
+  "mae": 0.002472515217959881,
+  "psnr": 34.728891152963456,
+  "boundary_mse": 0.00035085302079096437
+}
