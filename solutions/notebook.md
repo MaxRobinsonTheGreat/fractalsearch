@@ -100,6 +100,12 @@ RESOLUTION (Nmax=32768). LOSSES were every "more compute/step" idea (fp32, 2x→
 bigger pools, Sobolev-style, replay) — we are THROUGHPUT-BOUND (~600 steps), steps are
 precious. And every over-capacity (F4, T25, 256x6, 16 lvl) or over-focus (densify) idea.
 
+## Collision hypothesis DISPROVEN (dual hash)
+- dualhash (2 independent hash tables/fine level, averaged): 0.00034127 = IDENTICAL to
+  champion. Decorrelating collisions gives nothing -> T=2^24 collisions are already well
+  handled (even beneficially regularizing). Residual is irreducible boundary HF content,
+  not collision noise. Confirms we are at the true floor.
+
 ## Resolution ceiling + final state
 - Nmax=65536 + 14 levels: 0.00034077 — ties Nmax=32768 champion. Resolution ceiling
   ~32768-65536; finer gives nothing more (collisions/throughput).
