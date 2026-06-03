@@ -1,0 +1,15 @@
+{
+  "run_id": "20260603-141217",
+  "timestamp": 1780513938.1977544,
+  "solution": "solutions/hashgrid_replay2.py",
+  "name": "hashgrid_replay2",
+  "description": "champion config + 32M churning replay bank: refresh 1 batch GT/step, mine from bank's stored targets (3x less GT -> more steps); test vs GT-bound wall",
+  "commit": "6a153fd",
+  "device": "NVIDIA GeForce RTX 3090 Ti",
+  "status": "ok",
+  "train_seconds": 300.0830758930024,
+  "mse": 0.0004915600293315947,
+  "mae": 0.002691050060093403,
+  "psnr": 33.08423438532681,
+  "boundary_mse": 0.0005323667428456247
+}
