@@ -84,6 +84,15 @@ Mining strength re-tuned at the bigger batch (768k) — the pool/batch interacti
   finds harder boundary points (stronger mining). Saturates ~4-6x (pool GT cost caps steps).
 - n_hard 75%->90% at 4x pool: 0.000337->0.000336 (ties pool6, cheaper). Both ~0.000336.
 Robust pick: hashgrid_hard90 (4x pool, 90% hard) ~ pool6. Note: ~400-560 steps (pool-GT bound).
+- combo (batch 1M + 4x pool + 90% hard): 0.000336 — tied. Everything clusters at ~0.000336.
+
+## ============ FINAL: CONVERGED at MSE ~0.000336 (PSNR 34.74), 12.3x vs baseline ============
+54 experiments. Winning recipe = Instant-NGP hash grid (12 lvl, F=2, T=2^24, Nmin16/Nmax32768)
++ small GELU MLP 256x4, fresh-data adaptive hard-mining (4-6x uniform pool, 75-90% hard),
+big batch (768k-1M), high table LR (4-6e-1) + low MLP LR (5e-3) with 8% warmup + cosine, bf16.
+THE LEVERS THAT MATTERED: (1) hash grid arch, (2) big-batch+high-LR+warmup, (3) Nmax FAR past
+eval res (point-sampled targets), (4) strong mining scaled with batch. Residual = irreducible
+HF boundary filament + throughput cap (~400-600 steps, pool-GT-bound). Floor reached.
 
 ## (prior) hashgrid_n32b1m = 0.00034029 (psnr 34.68)
 After Nmax=32768, the finer grid wants BIGGER batches (more fine-cell coverage/step):

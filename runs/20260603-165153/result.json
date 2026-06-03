@@ -1,0 +1,15 @@
+{
+  "run_id": "20260603-165153",
+  "timestamp": 1780523514.8687088,
+  "solution": "solutions/hashgrid_combo.py",
+  "name": "hashgrid_combo",
+  "description": "champion (T=2^24, batch 524k, table LR 6e-1, Nmax=32768, batch 1M, 4x pool, 90% hard (joint best) + warmup over the first 8% then cosine decay \u2014 stabilize the aggressive table LR early",
+  "commit": "a768559",
+  "device": "NVIDIA GeForce RTX 3090 Ti",
+  "status": "ok",
+  "train_seconds": 300.1635986750007,
+  "mse": 0.0003362250281497836,
+  "mae": 0.0025614239275455475,
+  "psnr": 34.73369961382049,
+  "boundary_mse": 0.00035097490763291717
+}
