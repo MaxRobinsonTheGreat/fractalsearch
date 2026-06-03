@@ -21,13 +21,19 @@ Don't replace this text. Below, write your current notes for ideas and research 
 - hashgrid_best (v2 + adaptive + time-LR):    0.00048605  (psnr 33.13)  ** best
 - hashgrid_replay (8M churn bank + bank-mine): 0.00065260  (psnr 31.85)  worse (staleness)
 
-## CHAMPION: hashgrid_lr = 0.00046177 (psnr 33.36). 9x better than baseline (0.00413).
-Robust/reproducible (mine50 variant gave identical 0.00046177). Deterministic harness.
+## CHAMPION: hashgrid_l12 = 0.00045894 (psnr 33.38). ~9x better than baseline (0.00413).
+(hashgrid_l16 = 0.00045908 essentially tied.) Deterministic, reproducible harness.
 
 ## Champion config detail
-24 levels, F=2, T=2^23, Nmin=16 Nmax=8192, MLP 256x4 GELU, bf16 autocast, adaptive mining
-(3x uniform pool, 75% hard + 25% uniform), split LRs (table 5e-2 / MLP 5e-3) cosine-decayed
-over the time budget. ~1200 steps (memory-bandwidth capped).
+12-16 levels (equiv), F=2, T=2^23, Nmin=16 Nmax=8192, MLP 256x4 GELU, bf16 autocast,
+adaptive mining (3x uniform pool, 75% hard + 25% uniform), split LRs (table 5e-2 / MLP 5e-3)
+cosine-decayed over budget. ~1400 steps.
+
+## Level / feature sweep
+- n_levels: 24->0.000462, 16->0.000459, 12->0.000459. Fewer levels = more steps AND
+  slightly better (coarse levels were redundant). 12-16 optimal, GT-bound past that.
+- F=4 at 16 levels: 0.000468 WORSE (slower). F=2 definitively optimal.
+- smoothstep C1 interp: 0.000463, marginally worse (boundary isn't smooth, bilinear fine).
 
 ## (earlier best config note) hashgrid_bigT2 = 0.00046660, psnr 33.31
 24 levels, F=2, T=2^23, Nmin=16 Nmax=8192, MLP 256x4 GELU, bf16 autocast,
