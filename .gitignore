@@ -19,3 +19,4 @@ __pycache__/
 
 # uv
 # (uv.lock IS committed, like autoresearch)
+dashboard.log

@@ -1,0 +1,15 @@
+{
+  "run_id": "20260603-102358",
+  "timestamp": 1780500238.7334886,
+  "solution": "solutions/baseline_mlp.py",
+  "name": "baseline_mlp",
+  "description": "plain GELU MLP (256x6), uniform sampling, Adam",
+  "commit": "11c40ef",
+  "device": "NVIDIA GeForce RTX 3090 Ti",
+  "status": "ok",
+  "train_seconds": 300.05358442700026,
+  "mse": 0.004132786300033331,
+  "mae": 0.014731260947883129,
+  "psnr": 23.837570508314695,
+  "boundary_mse": 0.003679729998111725
+}
