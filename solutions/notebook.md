@@ -78,7 +78,12 @@ AND far denser boundary coverage. This is the key lever, attacking the actual er
 - Practical floor ~0.00046 confirmed: residual = boundary aliasing + finite capacity, and
   uniform metric forbids over-focusing on the boundary.
 
-## *** CHAMPION: hashgrid_nmax32k = 0.00034667 (psnr 34.60). ~11.9x better than baseline. ***
+## *** CHAMPION: hashgrid_n32b1m = 0.00034029 (psnr 34.68). ~12.1x better than baseline. ***
+After Nmax=32768, the finer grid wants BIGGER batches (more fine-cell coverage/step):
+batch 524k->0.000347, 768k->0.000341, 1M->0.000340 (marginal, ~560 steps). LR 8e-1 tied 6e-1.
+(n32b768 = 0.000341 is the robust pick; 1M barely better with far fewer steps.)
+
+## (intermediate) hashgrid_nmax32k = 0.00034667 (psnr 34.60), batch 524k
 BREAKTHROUGH: raising Nmax (finest grid resolution) FAR past eval resolution helps a lot.
 EARLIER CLAIM "Nmax>eval is useless" WAS WRONG — the target is POINT-sampled, so finer
 cells give the grid more DOF to fit each near-boundary eval point (adjacent eval pixels sit
