@@ -2,6 +2,34 @@ Don't replace this text. Below, write your current notes for ideas and research 
 
 # Research Notes
 
+## >>> NEXT SESSION — START HERE (the floor is NOT irreducible) <<<
+Champion is ~0.000336 (12.3x) but that's a THROUGHPUT/BUDGET floor, not a representation
+floor. The tell: train loss was STILL DROPPING at the 5-min buzzer -> the grid is
+undertrained, it just ran out of gradient steps (~400-600). "Irreducible HF boundary" was
+too convenient a story; the real bottleneck is steps, and steps are capped by a slow gather.
+
+The gather was complained about but never actually engineered — only off-the-shelf fixes
+tried (bf16, stock torch.compile, both ~no help). Root cause: the encoder is a PYTHON LOOP
+over 12 levels, each doing 4 separate fancy-index lookups = ~48 tiny gather kernels per
+forward, x3 forwards/step. That's launch-overhead + uncoalesced access, not a hard bandwidth
+limit (if it were purely bandwidth-bound, compile would've helped). Likely 2-4x in steps here.
+
+Ranked bets to try next:
+1. PACKED/VECTORIZED GATHER (highest confidence, pure engineering): pack all levels into ONE
+   contiguous table with per-level offsets; do the whole multi-level x 4-corner lookup as a
+   single batched gather (few kernels, coalesced). Then test the ONE regime we never had:
+   BIG batch (768k, low-variance grads) AND many steps (~2000). Data hints this is the gap:
+   524k@~800steps (0.000347) lost to 768k@~600steps (0.000341) on gradient quality, but
+   nobody has tried 768k@~2000steps. Faster gather unlocks exactly that.
+2. GT-FREE MINING: rank the mining pool by the model's own output gradient/local variation
+   (a boundary proxy needing NO mandelbrot eval); compute GT only on the selected batch ->
+   frees budget for more steps. (Note: confirmed the gather, not GT, is the main cost — so
+   pair this with #1; alone it won't help much.)
+3. CUDA graphs to kill per-step Python overhead once batch/pool shapes are fixed.
+Hypothesis to verify first: log train-loss vs eval and confirm undertraining (loss still
+dropping at deadline). If a faster gather gives ~2x steps at batch 768k, expect a real drop
+below 0.000336. If NOT — then the irreducible-boundary story is finally earned.
+
 ## Target characteristics
 - Periodic log-distance encoding: phase = 0.05*log(dist), target = 0.5+0.5*sin(2pi*phase).
 - HIGH-FREQUENCY content near the boundary, detail at every scale (band freq -> inf as dist -> 0).
