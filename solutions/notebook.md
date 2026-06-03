@@ -83,6 +83,10 @@ After Nmax=32768, the finer grid wants BIGGER batches (more fine-cell coverage/s
 batch 524k->0.000347, 768k->0.000341, 1M->0.000340 (marginal, ~560 steps). LR 8e-1 tied 6e-1.
 (n32b768 = 0.000341 is the robust pick; 1M barely better with far fewer steps.)
 
+## Re-tuning around Nmax=32768 champion (all confirm robustness)
+- F=4: 0.000363 worse. MLP 256x6: 0.000347 worse. Nmin=64: 0.000343 worse. 2x pool: 0.000351
+  worse (3x mining still best). 16 levels: flat. -> 12 lvl/F2/256x4/Nmin16/3xpool all optimal.
+
 ## (intermediate) hashgrid_nmax32k = 0.00034667 (psnr 34.60), batch 524k
 BREAKTHROUGH: raising Nmax (finest grid resolution) FAR past eval resolution helps a lot.
 EARLIER CLAIM "Nmax>eval is useless" WAS WRONG — the target is POINT-sampled, so finer
