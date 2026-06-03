@@ -21,6 +21,17 @@ Don't replace this text. Below, write your current notes for ideas and research 
 - hashgrid_best (v2 + adaptive + time-LR):    0.00048605  (psnr 33.13)  ** best
 - hashgrid_replay (8M churn bank + bank-mine): 0.00065260  (psnr 31.85)  worse (staleness)
 
+## Best config (hashgrid_bigT2 = 0.00046660, psnr 33.31)
+24 levels, F=2, T=2^23, Nmin=16 Nmax=8192, MLP 256x4 GELU, bf16 autocast,
+adaptive mining (3x pool, 75% hard + 25% uniform), time-based cosine LR 1e-2->1e-4.
+
+## Tuning results around best (all ~0.00047, deep diminishing returns)
+- T: 2^21=0.000478, 2^22=0.000470, 2^23=0.000467 (mining trains the fine entries that
+  plain uniform left cold -> bigger T finally helps WITH mining, not without).
+- progressive coarse-to-fine unlocking: 0.000574 WORSE (only ~1200 steps; curriculum
+  starves the fine levels of training time).
+- EMA: WORSE (weight-avg blurs high-freq grid).
+
 ## Throughput diagnosis
 - replay cut per-step GT from 786k->131k but steps only went 1200->1500. So GT is NOT
   the bottleneck — MODEL COMPUTE is (big mining-pool forward + 256x4 MLP fwd/bwd).
