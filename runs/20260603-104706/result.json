@@ -1,0 +1,15 @@
+{
+  "run_id": "20260603-104706",
+  "timestamp": 1780501626.7214384,
+  "solution": "solutions/hashgrid_adaptive.py",
+  "name": "hashgrid_adaptive",
+  "description": "hash grid (24 lvl, F=2, T=2^21, Nmax=8192) + MLP 256x4, error-weighted adaptive sampling (4x pool, 50% hard-mining)",
+  "commit": "ea8633f",
+  "device": "NVIDIA GeForce RTX 3090 Ti",
+  "status": "ok",
+  "train_seconds": 300.2055887380002,
+  "mse": 0.0005110048805363476,
+  "mae": 0.0047494228929281235,
+  "psnr": 32.915749519594506,
+  "boundary_mse": 0.0005592658999375999
+}
