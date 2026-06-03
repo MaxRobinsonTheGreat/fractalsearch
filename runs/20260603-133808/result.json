@@ -1,0 +1,15 @@
+{
+  "run_id": "20260603-133808",
+  "timestamp": 1780511888.822412,
+  "solution": "solutions/hashgrid_bb_lr.py",
+  "name": "hashgrid_bb_lr",
+  "description": "hash grid (24 lvl, F=2, T=2^23, Nmax=8192) + MLP 256x4, adaptive mining + batch 524k + higher table LR 1e-1",
+  "commit": "912a29d",
+  "device": "NVIDIA GeForce RTX 3090 Ti",
+  "status": "ok",
+  "train_seconds": 300.07266746700043,
+  "mse": 0.00044775265268981457,
+  "mae": 0.0026178269181400537,
+  "psnr": 33.489618325138025,
+  "boundary_mse": 0.00048106739996001124
+}
