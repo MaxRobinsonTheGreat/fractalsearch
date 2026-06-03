@@ -1,0 +1,15 @@
+{
+  "run_id": "20260603-162819",
+  "timestamp": 1780522100.6096804,
+  "solution": "solutions/hashgrid_beta999.py",
+  "name": "hashgrid_beta999",
+  "description": "champion (T=2^24, batch 524k, table LR 6e-1, Nmax=32768, batch 768k, beta2=0.999) + warmup over the first 8% then cosine decay \u2014 stabilize the aggressive table LR early",
+  "commit": "90e598d",
+  "device": "NVIDIA GeForce RTX 3090 Ti",
+  "status": "ok",
+  "train_seconds": 300.370307262001,
+  "mse": 0.0003436613769736141,
+  "mae": 0.002538227243348956,
+  "psnr": 34.63869274117573,
+  "boundary_mse": 0.00035969208693131804
+}
