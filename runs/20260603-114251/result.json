@@ -1,0 +1,15 @@
+{
+  "run_id": "20260603-114251",
+  "timestamp": 1780504971.984385,
+  "solution": "solutions/hashgrid_bigT_mine.py",
+  "name": "hashgrid_bigT_mine",
+  "description": "hash grid (24 lvl, F=2, T=2^21, Nmax=8192) + MLP 256x4, adaptive mining + time-LR, T=2^22 + heavy mining (train fine entries via boundary concentration)",
+  "commit": "b82eae4",
+  "device": "NVIDIA GeForce RTX 3090 Ti",
+  "status": "ok",
+  "train_seconds": 300.15156392800054,
+  "mse": 0.00046982147614471614,
+  "mae": 0.0027351470198482275,
+  "psnr": 33.28067134944608,
+  "boundary_mse": 0.0005077907699160278
+}
