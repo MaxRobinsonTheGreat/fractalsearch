@@ -97,6 +97,14 @@ Why mining strength > steps (the convergence proof): wloss=1200 cheap steps -> 0
 pool6=~400 steps strong mining -> 0.000336. More steps don't help; representation/boundary
 is the limit. Hence the floor is real, not a throughput artifact.
 
+## Three independent hypothesis tests on the residual — all say "irreducible HF boundary"
+- dualhash (2 hashes/level): no change -> NOT hash collisions.
+- rot (axis-aligned + 45deg rotated dual grid): 0.000343 worse -> NOT directional aliasing
+  (consistent with the smooth, non-staircase error filament).
+- fp32: worse -> NOT interpolation precision.
+=> residual is genuine unresolved high-frequency content at the boundary + representation
+   limit, within a throughput-bounded budget. Floor ~0.000336 is real.
+
 ## ============ FINAL: CONVERGED at MSE ~0.000336 (PSNR 34.74), 12.3x vs baseline ============
 54 experiments. Winning recipe = Instant-NGP hash grid (12 lvl, F=2, T=2^24, Nmin16/Nmax32768)
 + small GELU MLP 256x4, fresh-data adaptive hard-mining (4-6x uniform pool, 75-90% hard),

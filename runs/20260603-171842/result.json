@@ -1,0 +1,15 @@
+{
+  "run_id": "20260603-171842",
+  "timestamp": 1780525124.6082895,
+  "solution": "solutions/hashgrid_rot.py",
+  "name": "hashgrid_rot",
+  "description": "champion grid + a second 45-deg ROTATED hash grid (dual coordinate frame) to test whether directional/axis-aligned aliasing limits the boundary fit",
+  "commit": "99551c0",
+  "device": "NVIDIA GeForce RTX 3090 Ti",
+  "status": "ok",
+  "train_seconds": 300.0399095829998,
+  "mse": 0.0003428275522310287,
+  "mae": 0.0029803907964378595,
+  "psnr": 34.64924282136656,
+  "boundary_mse": 0.0003573731519281864
+}
