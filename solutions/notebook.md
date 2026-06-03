@@ -78,7 +78,17 @@ AND far denser boundary coverage. This is the key lever, attacking the actual er
 - Practical floor ~0.00046 confirmed: residual = boundary aliasing + finite capacity, and
   uniform metric forbids over-focusing on the boundary.
 
-## SEARCH CONVERGED (~0.000459, psnr 33.4) — champion hashgrid_l12
+## NEW CHAMPION: hashgrid_bb_lr4 = 0.00043821 (psnr 33.58)
+BIG-BATCH + HIGH-LR was the breakthrough past the "converged" 0.000459 plateau:
+- batch 262k->524k: 0.000459->0.000453 (better gather utilization + lower-variance grads).
+  768k/1M tied-or-worse (too few steps). 524k optimal.
+- table LR (with batch 524k): 5e-2->0.000453, 1e-1->0.000448, 2e-1->0.000443,
+  4e-1->0.000438 BEST, 8e-1->0.000440. Big batch supports much higher LR. Peak ~4e-1.
+- MLP LR: 5e-3 best (1.5e-2 worse). Keep 5e-3.
+Champion config: 12 lvl, F=2, T=2^23, Nmax=8192, MLP 256x4, batch 524k, table LR 4e-1
+(cosine), MLP LR 5e-3, bf16, 3x mining pool 75% hard. ~1000 steps. ~9.4x vs baseline.
+
+## (superseded) SEARCH CONVERGED (~0.000459, psnr 33.4) — hashgrid_l12
 ~9x better than baseline. Step cap (~1400) is GT-bound; fresh data is required (banks
 overfit) so GT can't be cheapened -> cap is fundamental. Untried low-prob ideas if
 resuming: LayerNorm-then-1-sine-layer decode; batch 524k; tuned MFN/Gabor net.
