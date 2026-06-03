@@ -1,0 +1,15 @@
+{
+  "run_id": "20260603-165826",
+  "timestamp": 1780523907.0830643,
+  "solution": "solutions/hashgrid_sigmoid.py",
+  "name": "hashgrid_sigmoid",
+  "description": "champion (T=2^24, batch 524k, table LR 6e-1, Nmax=32768, batch 768k, 4x pool, 90% hard, sigmoid head) + warmup over the first 8% then cosine decay \u2014 stabilize the aggressive table LR early",
+  "commit": "823f548",
+  "device": "NVIDIA GeForce RTX 3090 Ti",
+  "status": "ok",
+  "train_seconds": 300.1443242899986,
+  "mse": 0.00033683693618513644,
+  "mae": 0.002362408209592104,
+  "psnr": 34.725802915730725,
+  "boundary_mse": 0.00035081844544038177
+}
