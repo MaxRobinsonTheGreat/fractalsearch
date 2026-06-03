@@ -1,0 +1,15 @@
+{
+  "run_id": "20260603-130345",
+  "timestamp": 1780509825.8574364,
+  "solution": "solutions/hashgrid_l12.py",
+  "name": "hashgrid_l12",
+  "description": "hash grid (24 lvl, F=2, T=2^23, Nmax=8192) + MLP 256x4, adaptive mining + 12 levels (push fewer-levels trend)",
+  "commit": "5cfe94e",
+  "device": "NVIDIA GeForce RTX 3090 Ti",
+  "status": "ok",
+  "train_seconds": 300.1677112699999,
+  "mse": 0.0004589411255437881,
+  "mae": 0.0025731215719133615,
+  "psnr": 33.38243023594363,
+  "boundary_mse": 0.0004952316521666944
+}
