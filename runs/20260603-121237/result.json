@@ -1,0 +1,15 @@
+{
+  "run_id": "20260603-121237",
+  "timestamp": 1780506758.6456833,
+  "solution": "solutions/hashgrid_dec.py",
+  "name": "hashgrid_dec",
+  "description": "hash grid (24 lvl, F=2, T=2^23, Nmax=8192) + MLP 256x4, adaptive mining + split LRs + wider decoder MLP 512x3",
+  "commit": "138764f",
+  "device": "NVIDIA GeForce RTX 3090 Ti",
+  "status": "ok",
+  "train_seconds": 300.16500672000075,
+  "mse": 0.00046460831072181463,
+  "mae": 0.0027050136122852564,
+  "psnr": 33.32913025985754,
+  "boundary_mse": 0.0005008276202715933
+}

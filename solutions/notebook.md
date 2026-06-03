@@ -32,6 +32,12 @@ adaptive mining (3x pool, 75% hard + 25% uniform), time-based cosine LR 1e-2->1e
   starves the fine levels of training time).
 - EMA: WORSE (weight-avg blurs high-freq grid).
 
+## More tuning (all within noise of 0.000462, hash grid is squeezed)
+- hashgrid_fast (sync-free encoder): 0.000465. Step count unchanged (~1200) -> gather is
+  memory-bandwidth-capped, not sync/launch-bound. ~1200 steps seems hard for this grid.
+- hashgrid_lr (split table LR 5e-2 / MLP LR 5e-3): 0.00046177 ** best. Marginal win.
+- hashgrid_dec (decoder 512x3): 0.000465. Decoder not the bottleneck; 256x4 fine.
+
 ## Throughput diagnosis
 - replay cut per-step GT from 786k->131k but steps only went 1200->1500. So GT is NOT
   the bottleneck — MODEL COMPUTE is (big mining-pool forward + 256x4 MLP fwd/bwd).
