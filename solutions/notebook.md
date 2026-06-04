@@ -30,6 +30,16 @@ Hypothesis to verify first: log train-loss vs eval and confirm undertraining (lo
 dropping at deadline). If a faster gather gives ~2x steps at batch 768k, expect a real drop
 below 0.000336. If NOT — then the irreducible-boundary story is finally earned.
 
+2026-06-03 Codex continuation:
+- hashgrid_bag (packed single table + embedding_bag weighted 4-corner reduction) tested the
+  "fewer gather kernels" idea in pure PyTorch. Result 0.00035389, step 200 at 169.6s: worse
+  than champion and not faster. Lesson: PyTorch embedding_bag is not the missing fused
+  tiny-cuda-nn-style kernel here; it likely adds overhead / poorer memory behavior.
+- Next observation: existing "hard mining" uses torch.multinomial(perr, n_hard), i.e.
+  error-proportional sampling, not the actual top hard examples. Test true top-k mining with
+  otherwise champion-like settings; it may improve boundary focus, or it may overfocus and
+  confirm proportional sampling's regularizing value.
+
 ## Target characteristics
 - Periodic log-distance encoding: phase = 0.05*log(dist), target = 0.5+0.5*sin(2pi*phase).
 - HIGH-FREQUENCY content near the boundary, detail at every scale (band freq -> inf as dist -> 0).
