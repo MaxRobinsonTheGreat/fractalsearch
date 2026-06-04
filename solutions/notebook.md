@@ -66,6 +66,10 @@ below 0.000336. If NOT — then the irreducible-boundary story is finally earned
   batch 786432, 4x pool, 90% error-proportional hard mining, table LR 6e-1 / MLP LR 5e-3,
   8% warmup + cosine, bf16. Improvement is small but reproducible; keep exploring nearby
   mining fractions and width/LR interactions.
+- hashgrid_h128_hard85: 0.00033536, new best. Same width-128 / 4x pool setup, but 85%
+  hard samples. Promoted to champion.py at user stop request. Next if resumed: validate
+  champion.py once, then bracket hard fraction at 80/87.5 or tune table LR around 6e-1
+  under the h128/4x-pool/85%-hard regime.
 
 ## Target characteristics
 - Periodic log-distance encoding: phase = 0.05*log(dist), target = 0.5+0.5*sin(2pi*phase).
