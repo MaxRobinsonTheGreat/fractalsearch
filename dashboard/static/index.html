@@ -81,6 +81,14 @@
      basis:auto the chart visibly resized on the first redraw. */
   canvas { width:100%; flex:1 1 0; min-height:0; display:block; }
   .muted { color:var(--mut); font-size:12px; }
+  /* Chart footer: note on the left, "display most recent" control on the bottom right. */
+  .chart-footer { flex:0 0 auto; display:flex; justify-content:space-between;
+                  align-items:center; gap:12px; margin-top:6px; }
+  .chart-ctl { color:var(--mut); font-size:11px; display:flex; align-items:center;
+               gap:6px; white-space:nowrap; }
+  .chart-ctl select { background:#0d1117; color:var(--fg); border:1px solid var(--line);
+                      border-radius:6px; padding:2px 6px; cursor:pointer;
+                      font:11px ui-monospace, SFMono-Regular, Menlo, monospace; }
   .follow { margin-left:8px; font-size:11px; padding:2px 8px; border-radius:10px;
             border:1px solid var(--line); background:transparent; color:var(--mut);
             cursor:pointer; vertical-align:middle; }
@@ -138,7 +146,17 @@
   <div class="panel" id="panel-graph">
     <h2>Best-MSE over time</h2>
     <canvas id="chart" width="800" height="200"></canvas>
-    <div class="muted" id="chart-note"></div>
+    <div class="chart-footer">
+      <div class="muted" id="chart-note"></div>
+      <label class="chart-ctl">Display most recent
+        <select id="chart-window" onchange="setChartWindow(this.value)">
+          <option value="10">10</option>
+          <option value="50">50</option>
+          <option value="100">100</option>
+          <option value="all" selected>all</option>
+        </select>
+      </label>
+    </div>
   </div>
 </div>
 
@@ -154,6 +172,14 @@ const view = { scale: 1, tx: 0, ty: 0 };
 let userAdjusted = false;
 // Chart hover state + last-drawn geometry (set by drawChart) for hit-testing.
 let hoverIdx = null, chartGeo = null;
+// How many of the most recent solutions the chart shows ("all" or a number). The window
+// is applied at draw time relative to the current run count, so it tracks new runs.
+let chartWindow = "all";
+
+function setChartWindow(v){
+  chartWindow = (v==="all") ? "all" : parseInt(v, 10);
+  drawChart(lastFrontier);
+}
 
 function fmt(x, d=6){ return (x==null) ? "–" : Number(x).toFixed(d); }
 
@@ -378,15 +404,18 @@ function drawChart(frontier){
   ctx.setTransform(dpr,0,0,dpr,0,0);
   ctx.clearRect(0,0,W,H);
 
-  const pts = frontier.map((v,i)=>[i,v]).filter(p=>p[1]!=null);
+  // Window to the most recent N solutions (the dropdown). start is recomputed from the
+  // current run count each draw, so the view tracks new solutions as they arrive.
+  const start = (chartWindow==="all") ? 0 : Math.max(0, frontier.length - chartWindow);
+  const pts = frontier.map((v,i)=>[i,v]).filter(p=>p[1]!=null && p[0]>=start);
   if (pts.length<1){ document.getElementById("chart-note").textContent="no scored runs yet"; return; }
   const ys=pts.map(p=>p[1]);
-  const xmin=0, xmax=Math.max(1,frontier.length-1);
-  const ymin=0, ymax=Math.max(...ys);   // baseline pinned to 0
+  const xmin=start, xmax=Math.max(start+1,frontier.length-1);
+  const ymin=0, ymax=Math.max(...ys);   // baseline pinned to 0; ymax zooms to the window
   const pad=44;
   const X=i=>pad+(i-xmin)/(xmax-xmin||1)*(W-2*pad);
   const Y=v=>H-pad-( (v-ymin)/((ymax-ymin)||1) )*(H-2*pad);
-  const firstIdx = frontier.findIndex(v=>v!=null);
+  const firstIdx = frontier.findIndex((v,i)=>v!=null && i>=start);
   chartGeo = {pad, W, H, xmin, xmax, firstIdx, X, Y};   // for hover hit-testing
   ctx.strokeStyle="#30363d"; ctx.lineWidth=1; ctx.beginPath();
   ctx.moveTo(pad,H-pad); ctx.lineTo(W-pad,H-pad); ctx.moveTo(pad,pad); ctx.lineTo(pad,H-pad);
@@ -403,7 +432,7 @@ function drawChart(frontier){
   });
 
   const selIdx = runs.findIndex(r => r.run_id===selected);
-  if (selIdx>=0 && frontier[selIdx]!=null){
+  if (selIdx>=start && frontier[selIdx]!=null){   // only if the selected run is in-window
     const x=X(selIdx), y=Y(frontier[selIdx]);
     ctx.strokeStyle="#30363d"; ctx.setLineDash([3,3]); ctx.lineWidth=1; ctx.beginPath();
     ctx.moveTo(x,H-pad); ctx.lineTo(x,y); ctx.stroke(); ctx.setLineDash([]);
@@ -413,7 +442,7 @@ function drawChart(frontier){
   }
 
   // Hover marker: dot on the frontier at the run nearest the cursor, plus its name.
-  if (hoverIdx!=null && frontier[hoverIdx]!=null){
+  if (hoverIdx!=null && hoverIdx>=start && frontier[hoverIdx]!=null){
     const x=X(hoverIdx), y=Y(frontier[hoverIdx]), r=runs[hoverIdx];
     ctx.beginPath(); ctx.arc(x,y,4,0,2*Math.PI);
     ctx.fillStyle="#d29922"; ctx.fill();
@@ -429,8 +458,11 @@ function drawChart(frontier){
   ctx.fillStyle="#8b949e"; ctx.font="10px monospace";
   ctx.fillText(ymax.toExponential(2), 4, pad);
   ctx.fillText("0", 4, H-pad+4);
+  const shown = frontier.length - start;
+  const scope = (chartWindow==="all") ? `${frontier.length} runs`
+                                      : `most recent ${shown} of ${frontier.length} runs`;
   document.getElementById("chart-note").textContent =
-    `best MSE ${ymax===0?"–":Math.min(...ys).toExponential(3)} over ${frontier.length} runs`;
+    `best MSE ${ymax===0?"–":Math.min(...ys).toExponential(3)} over ${scope}`;
 }
 
 // Map a cursor x within the chart to the nearest run index that has a frontier value.
