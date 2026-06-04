@@ -51,6 +51,9 @@ below 0.000336. If NOT — then the irreducible-boundary story is finally earned
 - hashgrid_h128 (champion pool6, decoder width 128): 0.00033551, tiny new best vs pool6
   0.00033559. Step 400 at 272s. Decoder 256 was not obviously needed; smaller MLP may
   improve throughput/regularization while grid carries detail. Sweep lower width 64 next.
+- hashgrid_h64 (champion pool6, decoder width 64): 0.00033671, worse. Width 64 loses
+  decoder capacity; width 128 looks like the useful compression point. Next combine h128
+  with the previously near-best cheaper mining regime: 4x pool, 90% hard.
 
 ## Target characteristics
 - Periodic log-distance encoding: phase = 0.05*log(dist), target = 0.5+0.5*sin(2pi*phase).
