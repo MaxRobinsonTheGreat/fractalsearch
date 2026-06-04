@@ -48,6 +48,9 @@ below 0.000336. If NOT — then the irreducible-boundary story is finally earned
   hard focus improves train loss but hurts uniform eval. Move back to throughput/capacity:
   try smaller decoder width 128 with champion pool6 to see if MLP compute can be traded for
   more steps without losing hash-grid detail.
+- hashgrid_h128 (champion pool6, decoder width 128): 0.00033551, tiny new best vs pool6
+  0.00033559. Step 400 at 272s. Decoder 256 was not obviously needed; smaller MLP may
+  improve throughput/regularization while grid carries detail. Sweep lower width 64 next.
 
 ## Target characteristics
 - Periodic log-distance encoding: phase = 0.05*log(dist), target = 0.5+0.5*sin(2pi*phase).
