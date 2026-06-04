@@ -1,0 +1,15 @@
+{
+  "run_id": "20260603-222318",
+  "timestamp": 1780543399.2245436,
+  "solution": "solutions/hashgrid_pow2.py",
+  "name": "hashgrid_pow2",
+  "description": "champion pool4 config with sharper stochastic mining: sample hard points proportional to squared error instead of raw absolute error",
+  "commit": "2fb0eba",
+  "device": "NVIDIA GeForce RTX 3090 Ti",
+  "status": "ok",
+  "train_seconds": 300.21293763799986,
+  "mse": 0.00033907938632182777,
+  "mae": 0.0024504202883690596,
+  "psnr": 34.69698611515923,
+  "boundary_mse": 0.00035377396852709353
+}
