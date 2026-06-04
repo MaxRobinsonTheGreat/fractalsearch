@@ -39,6 +39,10 @@ below 0.000336. If NOT — then the irreducible-boundary story is finally earned
   error-proportional sampling, not the actual top hard examples. Test true top-k mining with
   otherwise champion-like settings; it may improve boundary focus, or it may overfocus and
   confirm proportional sampling's regularizing value.
+- hashgrid_topk4 (pool4, 75% true top-k): 0.00034016. Worse than pool4/proportional
+  0.00033660 and champion 0.00033559, despite low train loss. True hardest mining overfocuses;
+  proportional stochastic mining is acting as useful regularization / coverage. Next test:
+  intermediate selectivity via multinomial(error^2), not top-k.
 
 ## Target characteristics
 - Periodic log-distance encoding: phase = 0.05*log(dist), target = 0.5+0.5*sin(2pi*phase).

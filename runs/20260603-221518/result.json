@@ -1,0 +1,15 @@
+{
+  "run_id": "20260603-221518",
+  "timestamp": 1780542919.5219135,
+  "solution": "solutions/hashgrid_topk4.py",
+  "name": "hashgrid_topk4",
+  "description": "champion pool4 config, but select true top-k highest-error pool points instead of error-proportional multinomial mining",
+  "commit": "c77f62d",
+  "device": "NVIDIA GeForce RTX 3090 Ti",
+  "status": "ok",
+  "train_seconds": 300.131962446,
+  "mse": 0.0003401620197109878,
+  "mae": 0.0024560047313570976,
+  "psnr": 34.68314178526938,
+  "boundary_mse": 0.0003555183357093483
+}
