@@ -58,6 +58,9 @@ below 0.000336. If NOT — then the irreducible-boundary story is finally earned
   Crucial throughput signal: step 600 at 299s, vs h128 pool6 only step 400 at 272s. Width
   128 + cheaper strong mining is the current local optimum. Try hard fraction 95% next;
   if worse, bracket around 85/90.
+- hashgrid_h128_hard95: 0.00033553, slightly worse than hard90. 95% hard lowers train
+  loss a little but does not improve uniform eval. Hard90 remains the local best, but the
+  win is tiny enough that it needs a validation rerun before promoting champion.py.
 
 ## Target characteristics
 - Periodic log-distance encoding: phase = 0.05*log(dist), target = 0.5+0.5*sin(2pi*phase).
