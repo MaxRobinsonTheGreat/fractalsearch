@@ -110,9 +110,9 @@ class HashGridNet(nn.Module):
 
 
 class HashGridSolution(TorchSolution):
-    name = "champion"
-    description = ("validated champion: hidden-128 decoder, T=2^24, Nmax=32768, "
-                   "batch 768k, 4x mining pool, 90% error-proportional hard samples")
+    name = "hashgrid_h128_hard90"
+    description = ("hidden-128 decoder with cheaper strong mining: 4x pool and 90% "
+                   "error-proportional hard samples")
 
     TBL_LR0 = 6e-1
     MLP_LR0 = 5e-3

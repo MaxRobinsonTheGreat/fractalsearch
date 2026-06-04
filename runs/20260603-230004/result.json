@@ -1,0 +1,15 @@
+{
+  "run_id": "20260603-230004",
+  "timestamp": 1780545605.9032176,
+  "solution": "solutions/hashgrid_h128_hard90.py",
+  "name": "hashgrid_h128_hard90",
+  "description": "hidden-128 decoder with cheaper strong mining: 4x pool and 90% error-proportional hard samples",
+  "commit": "6f742c9",
+  "device": "NVIDIA GeForce RTX 3090 Ti",
+  "status": "ok",
+  "train_seconds": 300.0278365189997,
+  "mse": 0.0003354664077050984,
+  "mae": 0.002419942757114768,
+  "psnr": 34.74350961869731,
+  "boundary_mse": 0.00034910201793536544
+}

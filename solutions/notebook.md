@@ -61,6 +61,11 @@ below 0.000336. If NOT — then the irreducible-boundary story is finally earned
 - hashgrid_h128_hard95: 0.00033553, slightly worse than hard90. 95% hard lowers train
   loss a little but does not improve uniform eval. Hard90 remains the local best, but the
   win is tiny enough that it needs a validation rerun before promoting champion.py.
+- hashgrid_h128_hard90 validation rerun: 0.00033547 (new best, confirmed). Promoted to
+  champion.py. Current recipe: 12-level F=2 T=2^24 Nmax32768 hash grid, decoder width 128,
+  batch 786432, 4x pool, 90% error-proportional hard mining, table LR 6e-1 / MLP LR 5e-3,
+  8% warmup + cosine, bf16. Improvement is small but reproducible; keep exploring nearby
+  mining fractions and width/LR interactions.
 
 ## Target characteristics
 - Periodic log-distance encoding: phase = 0.05*log(dist), target = 0.5+0.5*sin(2pi*phase).
