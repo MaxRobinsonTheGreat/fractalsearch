@@ -54,6 +54,10 @@ below 0.000336. If NOT — then the irreducible-boundary story is finally earned
 - hashgrid_h64 (champion pool6, decoder width 64): 0.00033671, worse. Width 64 loses
   decoder capacity; width 128 looks like the useful compression point. Next combine h128
   with the previously near-best cheaper mining regime: 4x pool, 90% hard.
+- hashgrid_h128_hard90 (width 128, 4x pool, 90% hard): 0.00033548, tiny new best.
+  Crucial throughput signal: step 600 at 299s, vs h128 pool6 only step 400 at 272s. Width
+  128 + cheaper strong mining is the current local optimum. Try hard fraction 95% next;
+  if worse, bracket around 85/90.
 
 ## Target characteristics
 - Periodic log-distance encoding: phase = 0.05*log(dist), target = 0.5+0.5*sin(2pi*phase).
