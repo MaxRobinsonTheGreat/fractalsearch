@@ -58,7 +58,9 @@ is finally proven.
   cell-multinomial + in-cell jitter, 15% uniform, batch 768k. Zero pool forwards.
   Promoted to champion.py. Mining is now FREE; the error signal is temporally averaged
   (less noisy than single-pool estimates) — both cheaper AND better.
-- Tuning brackets: field res 4096x2592 (running), then hard fraction 90/95%, then EMA.
+- Field res bracket: 2048 -> 0.000244 (champion), 4096 -> 0.000260 worse (768k samples
+  over 10.6M cells = sparse/stale per-cell stats), 1024 running. Then hard fraction
+  90/95%, then EMA.
   Session trajectory: 0.000335 -> 324 (triton) -> 293 (gtfree) -> 274 (pool12) -> 244
   (errfield). The "irreducible floor at 0.000336" is now beaten by 27%.
 
