@@ -12,6 +12,17 @@ intermediates, atomic-add backward. This is the tiny-cuda-nn trick the notebook 
 never actually engineered. Success criterion: steps/300s well above ~600 at batch 768k,
 then MSE < 0.000335. If steps jump but MSE doesn't move, the irreducible-boundary story
 is finally proven.
+- champion baseline rerun: 0.00033489 (~600 steps) — reproducible, slightly better than
+  logged 0.000335.
+- encoder bench (batch 768k fwd+bwd / 3.1M pool fwd): champ 47.5/47.8ms,
+  packed 43.4/79.2ms (index-tensor DRAM traffic kills it — skip full run),
+  TRITON FUSED 22.6/24.0ms = 2x. Correct: fwd diff 3e-7, grad diff = atomic reorder noise.
+- *** hashgrid_triton: 0.00032359 — NEW BEST, first real move below the 0.000335 "floor".
+  ~700 steps (600@258s). Gains > step count alone (+17% steps, -3.4% MSE); fused kernel
+  also runs encoder in fp32 (champion used bf16 autocast) — precision may contribute.
+  The "irreducible floor" was partly an engineering artifact, as suspected. Next: profile
+  full step (pool GT / pool fwd / multinomial / train fwd+bwd / Adam), then scale pool or
+  steps into the freed budget.
 
 ## Folder cleanup (2026-06-09)
 ~70 hyperparameter-sweep variants were deleted from solutions/ to save tokens — every
