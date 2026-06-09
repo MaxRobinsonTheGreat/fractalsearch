@@ -43,8 +43,10 @@ is finally proven.
   champion), 16 -> 0.000277 (worse, steps drop to ~610). Optimum = 12.
 - Proxy floor at pool12: 1e-4 -> 0.00027444, 3e-5 -> 0.00027450 = TIE. Floor insensitive
   in this range; keeping 1e-4, no further floor runs.
-- Batch sweep at pool12 (floor 1e-4): 1M running (768k = 0.000274 champion). Then 524k
-  if 1M loses, then two-stage mining (FD preselect + true-error select).
+- Batch bracket at pool12 SETTLED: 524k -> 0.000276, 768k -> 0.000274 (champion), 1M ->
+  0.000275. Keep 768k.
+- hashgrid_2stage running: FD-proxy preselect 2x batch from 12x pool, GT those, then
+  true-error-proportional final selection (true-error selectivity at 2x GT cost).
 
 ## Folder cleanup (2026-06-09)
 ~70 hyperparameter-sweep variants were deleted from solutions/ to save tokens — every
