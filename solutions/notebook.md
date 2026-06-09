@@ -67,8 +67,10 @@ is finally proven.
 - EMA bracket SETTLED: 0.9 -> 0.000241, 0.8 -> 0.000239, 0.6 -> 0.00023806 (best,
   champion), 0.3 -> 0.000238 (tie/slightly worse). Keep 0.6.
 - Errfield recipe now: field 2048x1296, EMA 0.6, 98% hard, batch 768k, ~1600 steps.
-- hashgrid_n64l13 running: Nmax 65536 + 13 levels retry (tied at 600 steps historically;
-  with 1600 steps the finer grid may finally train).
+- *** hashgrid_n64l13: 0.00022636 — NEW BEST (-4.9%), promoted. Nmax 65536 + 13 levels
+  "tied" historically at ~600 steps but WINS at ~1600 steps: more steps let the finer
+  grid train. The resolution ceiling moves with throughput, as predicted.
+- hashgrid_n128l14 running (Nmax 131072, 14 levels): climbing the ladder.
   Session trajectory: 0.000335 -> 324 (triton) -> 293 (gtfree) -> 274 (pool12) -> 244
   (errfield). The "irreducible floor at 0.000336" is now beaten by 27%.
 
