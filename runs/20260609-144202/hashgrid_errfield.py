@@ -200,7 +200,7 @@ class ErrFieldSolution(TorchSolution):
         ], betas=(0.9, 0.99), eps=1e-15)
         self.model.train()
         batch = 786_432
-        n_hard = 19 * batch // 20
+        n_hard = 9 * batch // 10
         budget = ctx.time_budget_s
         step = 0
         ac = torch.autocast(device_type="cuda", dtype=torch.bfloat16)

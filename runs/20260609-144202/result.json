@@ -1,0 +1,15 @@
+{
+  "run_id": "20260609-144202",
+  "timestamp": 1781034123.3618891,
+  "solution": "solutions/hashgrid_errfield.py",
+  "name": "hashgrid_errfield",
+  "description": "persistent spatial error field mining: a coarse 2048x1296 EMA grid of per-cell mean |error|, updated FREE each step from the train batch's own residuals; hard coords sampled by cell-multinomial + in-cell jitter. No pool forwards at all -> ~2x more steps, fresh coords every step. | hard 90%",
+  "commit": "d9ee606",
+  "device": "NVIDIA GeForce RTX 3090 Ti",
+  "status": "ok",
+  "train_seconds": 300.0626460090007,
+  "mse": 0.0002430545282550156,
+  "mae": 0.0020054469350725412,
+  "psnr": 36.14296283341357,
+  "boundary_mse": 0.00024250881688203663
+}
