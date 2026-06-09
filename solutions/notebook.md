@@ -73,8 +73,8 @@ is finally proven.
 - hashgrid_n128l14 (Nmax 131072, 14 lvl): 0.00022644 = TIE with n64l13. Resolution
   ceiling at ~1600 steps is Nmax 65536; keep n64l13 (smaller). Ceiling will move again
   only if steps move again.
-- Champion validation rerun in progress; then table-LR re-tune (6e-1 was tuned at ~600
-  steps; at ~1600 steps optimal peak may differ).
+- Champion VALIDATED: rerun 0.00022698 vs 0.00022636 (within CUDA noise). Reproducible.
+- Table-LR bracket at ~1600 steps: 4e-1 running (6e-1 = champion), then 8e-1 if trend up.
   Session trajectory: 0.000335 -> 324 (triton) -> 293 (gtfree) -> 274 (pool12) -> 244
   (errfield). The "irreducible floor at 0.000336" is now beaten by 27%.
 
