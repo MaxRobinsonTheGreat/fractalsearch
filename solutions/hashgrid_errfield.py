@@ -206,7 +206,7 @@ class ErrFieldSolution(TorchSolution):
         ac = torch.autocast(device_type="cuda", dtype=torch.bfloat16)
 
         # Persistent error field over the view window (cells ~2 eval pixels).
-        FW, FH = 2048, 1296
+        FW, FH = 4096, 2592
         field = torch.ones(FH * FW, device=ctx.device)   # uniform start
         ema = 0.9
 
