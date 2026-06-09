@@ -200,13 +200,13 @@ class ErrFieldSolution(TorchSolution):
         ], betas=(0.9, 0.99), eps=1e-15)
         self.model.train()
         batch = 786_432
-        n_hard = 9 * batch // 10
+        n_hard = 17 * batch // 20
         budget = ctx.time_budget_s
         step = 0
         ac = torch.autocast(device_type="cuda", dtype=torch.bfloat16)
 
         # Persistent error field over the view window (cells ~2 eval pixels).
-        FW, FH = 2048, 1296
+        FW, FH = 1024, 648
         field = torch.ones(FH * FW, device=ctx.device)   # uniform start
         ema = 0.9
 
