@@ -167,7 +167,7 @@ class HashGridNet(nn.Module):
 
 
 class ErrFieldSolution(TorchSolution):
-    name = "champion"
+    name = "hashgrid_errfield"
     description = ("persistent spatial error field mining: a coarse 2048x1296 EMA grid "
                    "of per-cell mean |error|, updated FREE each step from the train "
                    "batch's own residuals; hard coords sampled by cell-multinomial + "
