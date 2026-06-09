@@ -60,8 +60,10 @@ is finally proven.
   (less noisy than single-pool estimates) — both cheaper AND better.
 - Field res bracket SETTLED: 1024 -> 0.000245, 2048 -> 0.000244 (champion), 4096 ->
   0.000260 (sparse/stale per-cell stats). Keep 2048.
-- Hard fraction: 85% -> 0.000244, 90% -> 0.00024305 (marginal best, promoted), 95%
-  running. Then EMA bracket, then 16-lvl / Nmax-65536 retry under the ~1600-step regime.
+- Hard fraction: 85% -> 0.000244, 90% -> 0.000243, 95% -> 0.00024134 (best, promoted),
+  98% running. Unlike pool-mining (where >90% hurt), the errfield tolerates high hard
+  fractions — its EMA + mean-update provide implicit coverage. Then EMA bracket, then
+  16-lvl / Nmax-65536 retry under the ~1600-step regime.
   Session trajectory: 0.000335 -> 324 (triton) -> 293 (gtfree) -> 274 (pool12) -> 244
   (errfield). The "irreducible floor at 0.000336" is now beaten by 27%.
 
