@@ -148,6 +148,13 @@
     <canvas id="chart" width="800" height="200"></canvas>
     <div class="chart-footer">
       <div class="muted" id="chart-note"></div>
+      <div style="display:flex; gap:16px; align-items:center;">
+      <label class="chart-ctl">Scale
+        <select id="chart-scale" onchange="setChartScale(this.value)">
+          <option value="linear" selected>linear</option>
+          <option value="log">log</option>
+        </select>
+      </label>
       <label class="chart-ctl">Display most recent
         <select id="chart-window" onchange="setChartWindow(this.value)">
           <option value="10">10</option>
@@ -156,6 +163,7 @@
           <option value="all" selected>all</option>
         </select>
       </label>
+      </div>
     </div>
   </div>
 </div>
@@ -175,9 +183,17 @@ let hoverIdx = null, chartGeo = null;
 // How many of the most recent solutions the chart shows ("all" or a number). The window
 // is applied at draw time relative to the current run count, so it tracks new runs.
 let chartWindow = "all";
+// Y-axis scale: "linear" pins the baseline to 0; "log" plots log10(MSE), which matches
+// the multiplicative nature of MSE progress on this target (equivalent to PSNR in dB).
+let chartScale = "linear";
 
 function setChartWindow(v){
   chartWindow = (v==="all") ? "all" : parseInt(v, 10);
+  drawChart(lastFrontier);
+}
+
+function setChartScale(v){
+  chartScale = v;
   drawChart(lastFrontier);
 }
 
@@ -411,10 +427,15 @@ function drawChart(frontier){
   if (pts.length<1){ document.getElementById("chart-note").textContent="no scored runs yet"; return; }
   const ys=pts.map(p=>p[1]);
   const xmin=start, xmax=Math.max(start+1,frontier.length-1);
-  const ymin=0, ymax=Math.max(...ys);   // baseline pinned to 0; ymax zooms to the window
+  const log = chartScale==="log";
+  // Linear: baseline pinned to 0, ymax zooms to the window. Log: span the window's own
+  // log10(MSE) range (MSE is always > 0 here; clamp guards a hypothetical perfect fit).
+  const tf = log ? (v=>Math.log10(Math.max(v,1e-12))) : (v=>v);
+  const yloVal=Math.min(...ys), yhiVal=Math.max(...ys);
+  const ymin = log ? tf(yloVal) : 0, ymax = tf(yhiVal);
   const pad=44;
   const X=i=>pad+(i-xmin)/(xmax-xmin||1)*(W-2*pad);
-  const Y=v=>H-pad-( (v-ymin)/((ymax-ymin)||1) )*(H-2*pad);
+  const Y=v=>H-pad-( (tf(v)-ymin)/((ymax-ymin)||1) )*(H-2*pad);
   const firstIdx = frontier.findIndex((v,i)=>v!=null && i>=start);
   chartGeo = {pad, W, H, xmin, xmax, firstIdx, X, Y};   // for hover hit-testing
   ctx.strokeStyle="#30363d"; ctx.lineWidth=1; ctx.beginPath();
@@ -456,13 +477,13 @@ function drawChart(frontier){
   }
 
   ctx.fillStyle="#8b949e"; ctx.font="10px monospace";
-  ctx.fillText(ymax.toExponential(2), 4, pad);
-  ctx.fillText("0", 4, H-pad+4);
+  ctx.fillText(yhiVal.toExponential(2), 4, pad);
+  ctx.fillText(log ? yloVal.toExponential(2) : "0", 4, H-pad+4);
   const shown = frontier.length - start;
   const scope = (chartWindow==="all") ? `${frontier.length} runs`
                                       : `most recent ${shown} of ${frontier.length} runs`;
   document.getElementById("chart-note").textContent =
-    `best MSE ${ymax===0?"–":Math.min(...ys).toExponential(3)} over ${scope}`;
+    `best MSE ${yhiVal===0?"–":yloVal.toExponential(3)} over ${scope}`;
 }
 
 // Map a cursor x within the chart to the nearest run index that has a frontier value.

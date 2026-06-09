@@ -52,7 +52,7 @@ You are that agent.
 ## The experiment loop — LOOP FOREVER
 
 1. Look at the git state and the current leaderboard (`runs.jsonl`, or the dashboard).
-2. Form a hypothesis. Create a new solution file (copy the closest prior winner) **or** iterate on the current best file. Keep each file a single coherent idea.
+2. Form a hypothesis. Create a new solution file (**copy** the closest prior winner, do not rewrite it in full) **or** iterate on the current best file. Keep each file a single coherent idea.
 3. `git add -A && git commit -m "<idea>"`.
 4. Run it: `uv run python -m harness.evaluate solutions/<file>.py > run.log 2>&1`
    (redirect everything — do NOT flood your context).
@@ -65,6 +65,8 @@ You are that agent.
 
 **Timeout:** a run should take ~5 minutes. If it exceeds 10 minutes the evaluator kills it
 and logs status `timeout`; treat that as a discard. You MUST enforce the timeout.
+
+**Saving Solutions:** you should minimize rewriting files from scratch. Each run will automatically save a copy of the solution file, so you can edit existing solution files rather than rewriting in full. For new and different ideas where a full rewrite is necessary, create new files. 
 
 **NEVER STOP.** Once the loop has begun, do not pause to ask the human whether to
 continue. They may be asleep and expect a stack of results when they return. If you run
