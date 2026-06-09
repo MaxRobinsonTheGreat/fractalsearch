@@ -41,8 +41,10 @@ is finally proven.
   mining strengths. Promoted to champion.py.
 - pool_mult bracket SETTLED: 4 -> 0.000293, 8 -> 0.000277, 12 -> 0.000274 (best,
   champion), 16 -> 0.000277 (worse, steps drop to ~610). Optimum = 12.
-- Sweeping proxy floor at pool12: 1e-4 (champion) vs 3e-5 (running) vs 3e-4 next if
-  3e-5 loses. Then batch sweep, then two-stage mining (FD preselect + true-error select).
+- Proxy floor at pool12: 1e-4 -> 0.00027444, 3e-5 -> 0.00027450 = TIE. Floor insensitive
+  in this range; keeping 1e-4, no further floor runs.
+- Batch sweep at pool12 (floor 1e-4): 1M running (768k = 0.000274 champion). Then 524k
+  if 1M loses, then two-stage mining (FD preselect + true-error select).
 
 ## Folder cleanup (2026-06-09)
 ~70 hyperparameter-sweep variants were deleted from solutions/ to save tokens — every
