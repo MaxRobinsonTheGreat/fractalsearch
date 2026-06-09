@@ -1,0 +1,15 @@
+{
+  "run_id": "20260609-151512",
+  "timestamp": 1781036113.6369548,
+  "solution": "solutions/hashgrid_n64l13.py",
+  "name": "hashgrid_n64l13",
+  "description": "persistent spatial error field mining: a coarse 2048x1296 EMA grid of per-cell mean |error|, updated FREE each step from the train batch's own residuals; hard coords sampled by cell-multinomial + in-cell jitter. No pool forwards at all -> ~2x more steps, fresh coords every step.",
+  "commit": "ac29eca",
+  "device": "NVIDIA GeForce RTX 3090 Ti",
+  "status": "ok",
+  "train_seconds": 300.04376860699995,
+  "mse": 0.00022635706409346312,
+  "mae": 0.0019586847629398108,
+  "psnr": 36.45205947605932,
+  "boundary_mse": 0.00022246148728299886
+}
