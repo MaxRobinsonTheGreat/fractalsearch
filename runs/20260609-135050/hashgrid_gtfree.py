@@ -199,7 +199,7 @@ class GTFreeSolution(TorchSolution):
         ], betas=(0.9, 0.99), eps=1e-15)
         self.model.train()
         batch = 786_432
-        pool_mult = 12
+        pool_mult = 16
         n_hard = 17 * batch // 20
         budget = ctx.time_budget_s
         step = 0
@@ -219,7 +219,7 @@ class GTFreeSolution(TorchSolution):
                 # model has fit HF structure this is large; where it is flat (well-fit
                 # smooth regions AND unlearned-but-smooth regions) it is small, so keep
                 # a uniform floor for coverage.
-                score = (ppred.float() - ppred2.float()).abs() + 3e-5
+                score = (ppred.float() - ppred2.float()).abs() + 1e-4
             hard_idx = torch.multinomial(score, n_hard, replacement=False)
             unif_idx = torch.randint(0, pcoords.shape[0], (batch - n_hard,), device=pcoords.device)
             idx = torch.cat([hard_idx, unif_idx])
