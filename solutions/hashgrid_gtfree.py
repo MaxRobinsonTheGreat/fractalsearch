@@ -199,7 +199,7 @@ class GTFreeSolution(TorchSolution):
         ], betas=(0.9, 0.99), eps=1e-15)
         self.model.train()
         batch = 786_432
-        pool_mult = 4
+        pool_mult = 8
         n_hard = 17 * batch // 20
         budget = ctx.time_budget_s
         step = 0

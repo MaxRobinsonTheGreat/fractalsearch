@@ -29,8 +29,14 @@ is finally proven.
   ~3400 steps. Train loss 1e-5 vs eval 6.7e-4 = pure memorization, even at 27x eval-grid
   density. FINAL WORD: no fixed bank of any size; the 33M-param grid memorizes points.
   Fresh sampling is structurally required.
-- hashgrid_gtfree running: fresh coords each step, mining by finite-diff HF proxy
-  |f(x+2e-4 d)-f(x)| on the model itself (no pool GT), GT only on the selected 768k batch.
+- *** hashgrid_gtfree: 0.00029260 — NEW BEST (-9.6%), first sub-3e-4. Fresh coords each
+  step, mining by finite-diff HF proxy |f(x+2e-4 d)-f(x)| on the model itself (no pool
+  GT), GT only on the selected 768k batch. ~1170 steps (1.7x). Promoted to champion.py.
+  KEY INSIGHT: the model's own local variation is a good-enough hardness signal; true
+  per-point error is not required for mining. boundary_mse 0.000300 ~= mse — error is
+  now spread, not boundary-concentrated like before.
+- Tuning next: pool_mult 8 (pool is GT-free now, bigger pool = stronger selectivity for
+  just 2 extra model fwds), then proxy floor / batch size.
 
 ## Folder cleanup (2026-06-09)
 ~70 hyperparameter-sweep variants were deleted from solutions/ to save tokens — every

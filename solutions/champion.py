@@ -166,10 +166,12 @@ class HashGridNet(nn.Module):
         return (torch.tanh(self.net(e)) + 1) / 2
 
 
-class TritonSolution(TorchSolution):
+class GTFreeSolution(TorchSolution):
     name = "champion"
-    description = ("champion: fused Triton hash-grid encoder (index+gather+interp in "
-                   "one kernel, atomic-add backward), h128 decoder, 4x pool, 85% hard")
+    description = ("triton champion + GT-FREE mining: pool hardness scored by a "
+                   "finite-difference HF proxy |f(x+d)-f(x)| (no mandelbrot eval on the "
+                   "pool); GT computed only for the selected batch. Fresh data, ~4x "
+                   "cheaper GT per step.")
 
     TBL_LR0 = 6e-1
     MLP_LR0 = 5e-3
@@ -202,16 +204,27 @@ class TritonSolution(TorchSolution):
         budget = ctx.time_budget_s
         step = 0
         ac = torch.autocast(device_type="cuda", dtype=torch.bfloat16)
+        # finite-difference probe: well below one eval-grid pixel (3.5/3840 ~ 9e-4)
+        delta = 2e-4
         while not ctx.expired():
             self._set_lr(opt, min(1.0, ctx.elapsed() / budget))
             with torch.no_grad(), ac:
-                pcoords, ptargets = ctx.sample(batch * pool_mult)
+                pcoords = gt.sample_uniform(batch * pool_mult,
+                                            generator=ctx.generator, device=ctx.device)
                 ppred = self.model(pcoords).reshape(-1)
-                perr = (ppred.float() - ptargets).abs() + 1e-6
-            hard_idx = torch.multinomial(perr, n_hard, replacement=False)
+                off = torch.randn_like(pcoords)
+                off = off * (delta / off.norm(dim=1, keepdim=True).clamp_min(1e-12))
+                ppred2 = self.model(pcoords + off).reshape(-1)
+                # HF proxy: local variation of the model's own prediction. Where the
+                # model has fit HF structure this is large; where it is flat (well-fit
+                # smooth regions AND unlearned-but-smooth regions) it is small, so keep
+                # a uniform floor for coverage.
+                score = (ppred.float() - ppred2.float()).abs() + 1e-4
+            hard_idx = torch.multinomial(score, n_hard, replacement=False)
             unif_idx = torch.randint(0, pcoords.shape[0], (batch - n_hard,), device=pcoords.device)
             idx = torch.cat([hard_idx, unif_idx])
-            coords, targets = pcoords[idx], ptargets[idx]
+            coords = pcoords[idx]
+            targets = ctx.ground_truth(coords)
 
             with ac:
                 pred = self.model(coords).reshape(-1)
@@ -224,4 +237,4 @@ class TritonSolution(TorchSolution):
                 ctx.log(f"step {step} loss {loss.item():.5f} (left {ctx.time_left():.0f}s)")
 
 
-SOLUTION = TritonSolution()
+SOLUTION = GTFreeSolution()
