@@ -39,9 +39,10 @@ is finally proven.
   1170) but stronger mining selectivity wins. Train loss HIGHER (0.00208 vs 0.00119) while
   eval improves — mined samples are harder; train loss is no longer comparable across
   mining strengths. Promoted to champion.py.
-- Bracketing pool_mult: 4 -> 0.000293, 8 -> 0.000277, 12 -> 0.000274 (new best, promoted,
-  ~700 steps), 16 running. Diminishing returns past 8. Then proxy floor (1e-4) sweep,
-  batch sweep, maybe two-stage (FD preselect + true-error select).
+- pool_mult bracket SETTLED: 4 -> 0.000293, 8 -> 0.000277, 12 -> 0.000274 (best,
+  champion), 16 -> 0.000277 (worse, steps drop to ~610). Optimum = 12.
+- Sweeping proxy floor at pool12: 1e-4 (champion) vs 3e-5 (running) vs 3e-4 next if
+  3e-5 loses. Then batch sweep, then two-stage mining (FD preselect + true-error select).
 
 ## Folder cleanup (2026-06-09)
 ~70 hyperparameter-sweep variants were deleted from solutions/ to save tokens — every
