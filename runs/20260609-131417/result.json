@@ -1,0 +1,15 @@
+{
+  "run_id": "20260609-131417",
+  "timestamp": 1781028858.0464935,
+  "solution": "solutions/champion.py",
+  "name": "champion",
+  "description": "champion: hidden-128 decoder, T=2^24, Nmax=32768, batch 768k, 4x mining pool, 85% error-proportional hard samples | baseline rerun, new session",
+  "commit": "54fe147",
+  "device": "NVIDIA GeForce RTX 3090 Ti",
+  "status": "ok",
+  "train_seconds": 300.45158704100004,
+  "mse": 0.00033488974440842867,
+  "mae": 0.0024227008689194918,
+  "psnr": 34.750981519973855,
+  "boundary_mse": 0.00034830134245567024
+}

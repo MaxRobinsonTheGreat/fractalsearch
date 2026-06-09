@@ -18,7 +18,7 @@ import triton.language as tl
 from harness import groundtruth as gt
 from harness.interface import FitContext, TorchSolution
 
-P1: tl.constexpr = 2654435761
+P1 = tl.constexpr(2654435761)
 
 
 @triton.jit

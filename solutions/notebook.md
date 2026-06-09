@@ -2,6 +2,17 @@ Don't replace this text. Below, write your current notes for ideas and research 
 
 # Research Notes
 
+## Session 2026-06-09 — attack the gather properly
+Plan: (1) champion baseline rerun (running). (2) hashgrid_packed — ONE fancy-index
+gather over a packed table (differs from failed embedding_bag try; verified numerically
+identical to champion encoder, diff ~1e-11). Risk: materializes [B,L,4] int64 indices
+(~1.2GB at pool size) — may be DRAM-traffic-bound. (3) hashgrid_triton — fused Triton
+kernel (triton 3.5.1 ships with torch, in-scope): index+gather+interp in one pass, zero
+intermediates, atomic-add backward. This is the tiny-cuda-nn trick the notebook said was
+never actually engineered. Success criterion: steps/300s well above ~600 at batch 768k,
+then MSE < 0.000335. If steps jump but MSE doesn't move, the irreducible-boundary story
+is finally proven.
+
 ## Folder cleanup (2026-06-09)
 ~70 hyperparameter-sweep variants were deleted from solutions/ to save tokens — every
 result is recorded below and every file is recoverable from git history (they lived at
