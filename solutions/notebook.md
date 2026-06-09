@@ -35,8 +35,12 @@ is finally proven.
   KEY INSIGHT: the model's own local variation is a good-enough hardness signal; true
   per-point error is not required for mining. boundary_mse 0.000300 ~= mse — error is
   now spread, not boundary-concentrated like before.
-- Tuning next: pool_mult 8 (pool is GT-free now, bigger pool = stronger selectivity for
-  just 2 extra model fwds), then proxy floor / batch size.
+- *** gtfree pool_mult=8: 0.00027747 — NEW BEST (-5.2%). ~900 steps (fewer than pool4's
+  1170) but stronger mining selectivity wins. Train loss HIGHER (0.00208 vs 0.00119) while
+  eval improves — mined samples are harder; train loss is no longer comparable across
+  mining strengths. Promoted to champion.py.
+- Bracketing pool_mult: 4 -> 0.000293, 8 -> 0.000277, 12 running. Then proxy floor
+  (1e-4) sweep, batch sweep, maybe two-stage (FD preselect + true-error select).
 
 ## Folder cleanup (2026-06-09)
 ~70 hyperparameter-sweep variants were deleted from solutions/ to save tokens — every
