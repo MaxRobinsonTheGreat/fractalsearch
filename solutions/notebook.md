@@ -70,7 +70,11 @@ is finally proven.
 - *** hashgrid_n64l13: 0.00022636 — NEW BEST (-4.9%), promoted. Nmax 65536 + 13 levels
   "tied" historically at ~600 steps but WINS at ~1600 steps: more steps let the finer
   grid train. The resolution ceiling moves with throughput, as predicted.
-- hashgrid_n128l14 running (Nmax 131072, 14 levels): climbing the ladder.
+- hashgrid_n128l14 (Nmax 131072, 14 lvl): 0.00022644 = TIE with n64l13. Resolution
+  ceiling at ~1600 steps is Nmax 65536; keep n64l13 (smaller). Ceiling will move again
+  only if steps move again.
+- Champion validation rerun in progress; then table-LR re-tune (6e-1 was tuned at ~600
+  steps; at ~1600 steps optimal peak may differ).
   Session trajectory: 0.000335 -> 324 (triton) -> 293 (gtfree) -> 274 (pool12) -> 244
   (errfield). The "irreducible floor at 0.000336" is now beaten by 27%.
 
