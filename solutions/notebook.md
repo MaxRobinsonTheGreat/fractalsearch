@@ -63,7 +63,9 @@ is finally proven.
 - Hard fraction SETTLED: 85% -> 0.000244, 90% -> 0.000243, 95% -> 0.000241, 98% ->
   0.00024104 (best, promoted; 95-98 is noise-flat). Unlike pool-mining (where >90% hurt),
   the errfield tolerates extreme hard fractions — its EMA + mean-update provide implicit
-  coverage. EMA 0.8 running, then 16-lvl / Nmax-65536 retry under the ~1600-step regime.
+  coverage.
+- EMA bracket: 0.9 -> 0.000241, 0.8 -> 0.00023917 (best, promoted), 0.6 running.
+  Then 16-lvl / Nmax-65536 retry under the ~1600-step regime.
   Session trajectory: 0.000335 -> 324 (triton) -> 293 (gtfree) -> 274 (pool12) -> 244
   (errfield). The "irreducible floor at 0.000336" is now beaten by 27%.
 
