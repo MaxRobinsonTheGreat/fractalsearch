@@ -20,9 +20,17 @@ is finally proven.
 - *** hashgrid_triton: 0.00032359 — NEW BEST, first real move below the 0.000335 "floor".
   ~700 steps (600@258s). Gains > step count alone (+17% steps, -3.4% MSE); fused kernel
   also runs encoder in fp32 (champion used bf16 autocast) — precision may contribute.
-  The "irreducible floor" was partly an engineering artifact, as suspected. Next: profile
-  full step (pool GT / pool fwd / multinomial / train fwd+bwd / Adam), then scale pool or
-  steps into the freed budget.
+  The "irreducible floor" was partly an engineering artifact, as suspected. Promoted to
+  champion.py.
+- STEP PROFILE (post-triton, batch 768k pool 3.1M): pool GT mandelbrot 346ms (81%!),
+  pool model fwd 36ms, multinomial 0.6ms, train fwd+bwd+adam 43ms. GT is now THE
+  bottleneck (the old "GT is not the bottleneck" note was an artifact of the slow encoder).
+- hashgrid_megabank (250M precomputed bank, GT-free pools): 0.00067270 WORSE 2x despite
+  ~3400 steps. Train loss 1e-5 vs eval 6.7e-4 = pure memorization, even at 27x eval-grid
+  density. FINAL WORD: no fixed bank of any size; the 33M-param grid memorizes points.
+  Fresh sampling is structurally required.
+- hashgrid_gtfree running: fresh coords each step, mining by finite-diff HF proxy
+  |f(x+2e-4 d)-f(x)| on the model itself (no pool GT), GT only on the selected 768k batch.
 
 ## Folder cleanup (2026-06-09)
 ~70 hyperparameter-sweep variants were deleted from solutions/ to save tokens — every

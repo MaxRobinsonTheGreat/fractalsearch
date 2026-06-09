@@ -1,0 +1,15 @@
+{
+  "run_id": "20260609-132851",
+  "timestamp": 1781029732.4336631,
+  "solution": "solutions/hashgrid_megabank.py",
+  "name": "hashgrid_megabank",
+  "description": "triton champion + 250M-point precomputed GT bank: pool GT was 81% of step time; pay it once (~30s) for ~4x more steps. 250M = 27x eval-grid density so memorization should be invisible at eval res (unlike the old 32M bank).",
+  "commit": "8cc2abe",
+  "device": "NVIDIA GeForce RTX 3090 Ti",
+  "status": "ok",
+  "train_seconds": 300.00005310999995,
+  "mse": 0.0006726998835802078,
+  "mae": 0.0026504811830818653,
+  "psnr": 31.721786474777115,
+  "boundary_mse": 0.0007120835944078863
+}
