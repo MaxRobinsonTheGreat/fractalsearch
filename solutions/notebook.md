@@ -64,9 +64,11 @@ is finally proven.
   0.00024104 (best, promoted; 95-98 is noise-flat). Unlike pool-mining (where >90% hurt),
   the errfield tolerates extreme hard fractions — its EMA + mean-update provide implicit
   coverage.
-- EMA bracket: 0.9 -> 0.000241, 0.8 -> 0.000239, 0.6 -> 0.00023806 (best, promoted),
-  0.3 running. Faster field adaptation keeps winning small amounts.
-  Then 16-lvl / Nmax-65536 retry under the ~1600-step regime.
+- EMA bracket SETTLED: 0.9 -> 0.000241, 0.8 -> 0.000239, 0.6 -> 0.00023806 (best,
+  champion), 0.3 -> 0.000238 (tie/slightly worse). Keep 0.6.
+- Errfield recipe now: field 2048x1296, EMA 0.6, 98% hard, batch 768k, ~1600 steps.
+- hashgrid_n64l13 running: Nmax 65536 + 13 levels retry (tied at 600 steps historically;
+  with 1600 steps the finer grid may finally train).
   Session trajectory: 0.000335 -> 324 (triton) -> 293 (gtfree) -> 274 (pool12) -> 244
   (errfield). The "irreducible floor at 0.000336" is now beaten by 27%.
 
