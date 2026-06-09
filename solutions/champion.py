@@ -167,9 +167,9 @@ class HashGridNet(nn.Module):
 
 
 class TritonSolution(TorchSolution):
-    name = "hashgrid_triton"
-    description = ("champion recipe with fused Triton hash-grid encoder "
-                   "(index+gather+interp in one kernel, atomic-add backward)")
+    name = "champion"
+    description = ("champion: fused Triton hash-grid encoder (index+gather+interp in "
+                   "one kernel, atomic-add backward), h128 decoder, 4x pool, 85% hard")
 
     TBL_LR0 = 6e-1
     MLP_LR0 = 5e-3
