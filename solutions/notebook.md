@@ -2,6 +2,16 @@ Don't replace this text. Below, write your current notes for ideas and research 
 
 # Research Notes
 
+## Folder cleanup (2026-06-09)
+~70 hyperparameter-sweep variants were deleted from solutions/ to save tokens — every
+result is recorded below and every file is recoverable from git history (they lived at
+commit a409e2b and earlier). What remains is one file per *distinct approach*:
+champion.py (best, 0.000335 — the matured hashgrid lineage), baseline_mlp, fourier_mlp,
+hashgrid_bag (packed gather, next-bet #1), hashgrid_siren2 (sine decoder),
+hashgrid_densify (anchor-jitter sampling), hashgrid_replay2 (replay bank),
+hashgrid_ens (ensembling). PREFER editing these in place (small diffs) over creating
+new near-copies; only add a new file for a genuinely new mechanism.
+
 ## >>> NEXT SESSION — START HERE (the floor is NOT irreducible) <<<
 Champion is ~0.000336 (12.3x) but that's a THROUGHPUT/BUDGET floor, not a representation
 floor. The tell: train loss was STILL DROPPING at the 5-min buzzer -> the grid is
