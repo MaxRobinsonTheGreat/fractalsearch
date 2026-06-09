@@ -208,7 +208,7 @@ class ErrFieldSolution(TorchSolution):
         # Persistent error field over the view window (cells ~2 eval pixels).
         FW, FH = 2048, 1296
         field = torch.ones(FH * FW, device=ctx.device)   # uniform start
-        ema = 0.9
+        ema = 0.8
 
         while not ctx.expired():
             self._set_lr(opt, min(1.0, ctx.elapsed() / budget))
