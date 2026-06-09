@@ -1,0 +1,15 @@
+{
+  "run_id": "20260609-141311",
+  "timestamp": 1781032392.3222728,
+  "solution": "solutions/hashgrid_2stage.py",
+  "name": "hashgrid_2stage",
+  "description": "two-stage mining: FD-proxy preselect 2x batch from a 12x GT-free pool, compute GT on those, then TRUE-error-proportional select the final batch. True-error selectivity at ~2x (not 12x) GT cost.",
+  "commit": "3237b8b",
+  "device": "NVIDIA GeForce RTX 3090 Ti",
+  "status": "ok",
+  "train_seconds": 300.1003560930003,
+  "mse": 0.0002785409160424024,
+  "mae": 0.0023068704176694155,
+  "psnr": 35.551110004678236,
+  "boundary_mse": 0.00028270541224628687
+}
