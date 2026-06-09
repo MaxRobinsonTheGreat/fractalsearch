@@ -198,7 +198,7 @@ class GTFreeSolution(TorchSolution):
             {"params": self.model.net.parameters(), "peak_lr": self.MLP_LR0, "lr": self.MLP_LR0},
         ], betas=(0.9, 0.99), eps=1e-15)
         self.model.train()
-        batch = 524_288
+        batch = 786_432
         pool_mult = 12
         n_hard = 17 * batch // 20
         budget = ctx.time_budget_s
