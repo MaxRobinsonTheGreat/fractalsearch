@@ -74,7 +74,53 @@ is finally proven.
   ceiling at ~1600 steps is Nmax 65536; keep n64l13 (smaller). Ceiling will move again
   only if steps move again.
 - Champion VALIDATED: rerun 0.00022698 vs 0.00022636 (within CUDA noise). Reproducible.
-- Table-LR bracket at ~1600 steps: 4e-1 running (6e-1 = champion), then 8e-1 if trend up.
+- Table-LR bracket at ~1600 steps: 4e-1 -> 0.00022788 (tie/noise). 6e-1 still fine; LR
+  surface is flat here. Session ended at user request after this run.
+
+## ============ SESSION SUMMARY 2026-06-09: 0.000335 -> 0.000226 (-33%) ============
+The "irreducible floor at 0.000336" was an ENGINEERING artifact. Chain of wins:
+1. hashgrid_triton 0.000324: fused Triton encoder (index+gather+interp one kernel,
+   atomic-add bwd; triton ships with torch, fp32 inside). 2x encoder speed.
+2. Step profile then showed pool GT mandelbrot = 81% of step -> mining had to stop
+   paying GT on the pool.
+3. hashgrid_gtfree 0.000293: FD proxy |f(x+2e-4 d)-f(x)| scores hardness with NO GT;
+   GT only on selected batch. pool12 best (0.000274); batch 768k best; floor flat.
+4. hashgrid_errfield 0.000244: persistent 2048x1296 EMA field of per-cell MEAN |err|
+   updated free from train residuals; mining cost ~zero -> ~1600 steps. Settled:
+   EMA 0.6, 98% hard, field 2048. (4096 field worse: sparse stats. Mean-not-sum matters.)
+5. hashgrid_n64l13 0.000226: Nmax 65536 + 13 lvl wins at 1600 steps (was a tie at 600).
+   n128l14 ties -> ceiling tracks step count.
+CHAMPION: solutions/champion.py = errfield + n64l13 recipe, VALIDATED twice (0.0002264,
+0.0002270). PSNR ~36.5. ~14.8x better than baseline_mlp.
+FAILED this session (final words): megabank 250M precomputed bank OVERFITS (train 1e-5 /
+eval 6.7e-4) — fresh sampling is structurally required at ANY bank size; packed
+pure-torch gather loses on index-tensor DRAM; 2stage true-error refinement not worth its
+GT; F=4 still loses (table DRAM + Adam state); LR 4e-1 flat.
+
+## FUTURE THREADS (ranked, for next session)
+1. THROUGHPUT AGAIN: step is now ~180ms (GT 768k ~86ms + train ~43ms + sampling/Adam).
+   GT on the train batch is again the largest item. Ideas: CUDA-graph the train step;
+   fuse multinomial+jitter sampling; try bf16 GT? (NO — GT is harness, but the CALL count
+   is ours: smaller batch at more steps? batch bracket said 768k optimal at pool-mining,
+   re-bracket batch under errfield where mining is free — 384k@3200 steps untested.)
+2. ERRFIELD UPGRADES: (a) multi-scale field (coarse + fine pyramid, sample coarse then
+   refine); (b) store EMA of err^2 (matches MSE objective) instead of |err|; (c) jitter
+   distribution within cell biased toward cell's high-err corner via 2x2 subcell stats;
+   (d) anneal hard fraction 98% -> lower late (fine-tune phase on uniform).
+3. DECODER: width 256 retry never run under the cheap-encoder + 1600-step regime
+   (only F=4 was retried). Also try 3-layer (shallower) for more steps.
+4. LOSS SHAPING: log-cosh or Huber on the mined batch (mined points are extreme-error;
+   robust loss may stabilize); or weight loss by 1/field value to de-bias importance
+   sampling (currently the train distribution != eval distribution; the 0.05-0.999
+   boundary band is overweighted ~50x — mathematically this should bias the fit, yet it
+   wins; understand why / whether unbiasing helps).
+5. ENSEMBLE RETRY: two half-budget models averaged FAILED at 600 steps (undertrained);
+   at 1600+ steps each member trains properly — retry K=2.
+6. HAIL MARY: train a tiny residual corrector on the champion's error field (a second
+   small hash grid fit only on high-err cells, masked-added). Universal approximator
+   constraint still satisfied (it's all learned).
+NOTE: eval harness adds ~40s overhead (GT eval grid + render); train budget is the 300s.
+Dashboard now has a log-scale option for the best-MSE chart (Scale dropdown).
   Session trajectory: 0.000335 -> 324 (triton) -> 293 (gtfree) -> 274 (pool12) -> 244
   (errfield). The "irreducible floor at 0.000336" is now beaten by 27%.
 
