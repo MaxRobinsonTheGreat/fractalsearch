@@ -52,10 +52,15 @@ is finally proven.
 - hashgrid_F4 (retry under cheap encoder): 0.00030234 WORSE, steps fell to ~440 (2x
   table = more gather DRAM + 2x Adam state). F=2 confirmed optimal in the new regime too.
 - NEW BOTTLENECK after gtfree: the two 9.4M-point proxy fwds (~220ms) dominate the step.
-- hashgrid_errfield running: persistent 2048x1296 EMA field of per-cell MEAN |error|
-  (mean, not sum, so oversampled cells don't self-reinforce), updated free from train
-  residuals; hard coords = cell-multinomial + in-cell jitter, 15% uniform. Zero pool
-  forwards -> projected ~2000 steps, fresh coords each step.
+- *** hashgrid_errfield: 0.00024397 — NEW BEST (-11.1%!), ~1600 steps. Persistent
+  2048x1296 EMA(0.9) field of per-cell MEAN |error| (mean, not sum, so oversampled cells
+  don't self-reinforce), updated free from train residuals; hard coords =
+  cell-multinomial + in-cell jitter, 15% uniform, batch 768k. Zero pool forwards.
+  Promoted to champion.py. Mining is now FREE; the error signal is temporally averaged
+  (less noisy than single-pool estimates) — both cheaper AND better.
+- Tuning brackets: field res 4096x2592 (running), then hard fraction 90/95%, then EMA.
+  Session trajectory: 0.000335 -> 324 (triton) -> 293 (gtfree) -> 274 (pool12) -> 244
+  (errfield). The "irreducible floor at 0.000336" is now beaten by 27%.
 
 ## Folder cleanup (2026-06-09)
 ~70 hyperparameter-sweep variants were deleted from solutions/ to save tokens — every
