@@ -167,7 +167,7 @@ class HashGridNet(nn.Module):
 
 
 class ErrFieldSolution(TorchSolution):
-    name = "hashgrid_errfield"
+    name = "hashgrid_n64l13"
     description = ("persistent spatial error field mining: a coarse 2048x1296 EMA grid "
                    "of per-cell mean |error|, updated FREE each step from the train "
                    "batch's own residuals; hard coords sampled by cell-multinomial + "
@@ -180,8 +180,8 @@ class ErrFieldSolution(TorchSolution):
     WARMUP = 0.08
 
     def __init__(self):
-        self.model = HashGridNet(n_levels=12, n_features=2, log2_T=24,
-                                 n_min=16, n_max=32768, hidden=128, mlp_layers=4).to(self.device)
+        self.model = HashGridNet(n_levels=13, n_features=2, log2_T=24,
+                                 n_min=16, n_max=65536, hidden=128, mlp_layers=4).to(self.device)
 
     def _set_lr(self, opt, frac):
         import math
