@@ -49,9 +49,13 @@ is finally proven.
   pure FD-proxy (0.00027444). True-error refinement not worth its GT cost (~610 vs 700
   steps); the FD proxy alone is a sufficient hardness signal. Mining is settled:
   12x GT-free pool, FD proxy, 85% hard, batch 768k.
-- hashgrid_F4 running: retry F=4 under the cheap triton encoder (historic F=4 loss was
-  when the encoder was the bottleneck; F is constexpr in the kernel, encoder now ~4% of
-  step). If wins, also retry other "more compute/step" losers (256-wide decoder, 16 lvl).
+- hashgrid_F4 (retry under cheap encoder): 0.00030234 WORSE, steps fell to ~440 (2x
+  table = more gather DRAM + 2x Adam state). F=2 confirmed optimal in the new regime too.
+- NEW BOTTLENECK after gtfree: the two 9.4M-point proxy fwds (~220ms) dominate the step.
+- hashgrid_errfield running: persistent 2048x1296 EMA field of per-cell MEAN |error|
+  (mean, not sum, so oversampled cells don't self-reinforce), updated free from train
+  residuals; hard coords = cell-multinomial + in-cell jitter, 15% uniform. Zero pool
+  forwards -> projected ~2000 steps, fresh coords each step.
 
 ## Folder cleanup (2026-06-09)
 ~70 hyperparameter-sweep variants were deleted from solutions/ to save tokens — every
