@@ -124,6 +124,17 @@ Dashboard now has a log-scale option for the best-MSE chart (Scale dropdown).
   Session trajectory: 0.000335 -> 324 (triton) -> 293 (gtfree) -> 274 (pool12) -> 244
   (errfield). The "irreducible floor at 0.000336" is now beaten by 27%.
 
+## Folder cleanup (2026-06-19)
+Pruned solutions/ to 4 files, one per *distinct* surviving idea (all cuts recoverable from
+git; lessons live in this notebook): champion.py (0.000226 — self-contained: Triton fused
+encoder + errfield EMA mining + n64l13 grid, the whole winning lineage baked in),
+baseline_mlp.py (template/floor), fourier_mlp.py (RFF, the non-hashgrid family),
+hashgrid_gtfree.py (the GT-free FD-proxy mining mechanism — the one distinct idea NOT in
+champion, which uses errfield instead). CUT as near-duplicates of champion: errfield,
+n64l13, n128l14, lr, triton. CUT as documented dead-ends: 2stage, F4, megabank, packed,
+bag, densify, replay2, siren2, ens. Edit champion in place; only add a file for a genuinely
+new mechanism.
+
 ## Folder cleanup (2026-06-09)
 ~70 hyperparameter-sweep variants were deleted from solutions/ to save tokens — every
 result is recorded below and every file is recoverable from git history (they lived at
