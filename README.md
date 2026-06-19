@@ -14,3 +14,6 @@ As the human overseer, you can edit the prompt file AGENT.MD to guide bot behavi
 
 This project is directly adapted form Karpathy's [autoresearch](https://github.com/karpathy/autoresearch). 
 All code was AI generated with claude (this is human written btw). 
+
+> [!WARNING]  
+> I will not be managing this repo or accepting PRs.
