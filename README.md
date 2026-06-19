@@ -25,7 +25,6 @@ harness/            IMMUTABLE — the rules of the game (agent reads, never edit
   evaluate.py       runner: trains a solution (5 min), scores MSE, logs, saves artifacts
 solutions/          MUTABLE registry — one file per approach (the agent's workspace)
   baseline_mlp.py   plain MLP (template — copy this to start a new approach)
-  fourier.py        Fourier features + skip connections (mandelbrotnn's strongest family)
 dashboard/          FastAPI live control panel
   app.py            serves the log + renders; static/index.html is the UI
 runs.jsonl          append-only performance log (gitignored)
