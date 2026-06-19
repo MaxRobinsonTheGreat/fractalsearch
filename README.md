@@ -27,8 +27,8 @@ solutions/          MUTABLE registry — one file per approach (the agent's work
   baseline_mlp.py   plain MLP (template — copy this to start a new approach)
 dashboard/          FastAPI live control panel
   app.py            serves the log + renders; static/index.html is the UI
-runs.jsonl          append-only performance log (gitignored)
-runs/<id>/          per-run artifacts: model.pt, preview.png, result.json
+runs.jsonl          append-only performance log / leaderboard (committed)
+runs/<id>/          per-run artifacts: model.pt, preview.png, result.json (gitignored, local-only)
 AGENT.md            the autonomous research protocol the agent follows
 ```
 

@@ -1,10 +1,6 @@
-# Experiment progress IS version controlled so a clone can pick up where you left off:
-#   - runs.jsonl            the run history / leaderboard
-#   - runs/<id>/result.json that run's record
-#   - runs/<id>/*.py        a snapshot of the solution source that produced it
-# But the heavy, re-derivable artifacts stay local:
-runs/**/*.pt
-runs/**/*.png
+# runs.jsonl (the run history / leaderboard) IS version controlled.
+# Per-run artifact dirs stay local — they're re-derivable and just clutter the repo:
+runs/
 run.log
 dashboard.log
 
